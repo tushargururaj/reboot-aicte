@@ -1,32 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// FIX: Corrected import path to ensure Header is found
-import Header from "../components/Header"; 
-// FIX: Adding the missing StatusBadge import that was referenced in the Profile component mockup
-import StatusBadge from "../components/StatusBadge"; 
-
-
-// Reusing the SidebarItem helper from FacultyDashboard.jsx for consistent styling
-const SidebarItem = ({ label, icon, active = false, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 " +
-        (active
-          ? "bg-white/18 font-semibold shadow-sm border border-white/10"
-          : "text-white/85 hover:bg-white/10 hover:text-white")
-      }
-    >
-      <span className="text-lg">{icon}</span>
-      <span className="text-sm sm:text-base">{label}</span>
-    </button>
-  );
-};
+import Header from "../components/Header";
+import FacultySidebar from "../components/FacultySidebar";
+import {
+  getDefaultFacultyNavItems,
+  getProfileNavItem,
+  getHelpNavItem,
+} from "../utils/facultyNav";
 
 const Profile = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const navItems = getDefaultFacultyNavItems(navigate, "profile");
+  const profileItem = getProfileNavItem(navigate, true);
+  const helpItem = getHelpNavItem(navigate);
   
   // Mock data for the profile state
   const [profileData, setProfileData] = useState({
@@ -81,35 +68,12 @@ const Profile = ({ user, onLogout }) => {
         backgroundImage: "linear-gradient(135deg, #f8f2ff 0%, #fff4ea 100%)",
       }}
     >
-      {/* ⬅️ LEFT: Fixed vertical sidebar (Consistent with FacultyDashboard.jsx) */}
-      <aside className="hidden md:flex flex-col w-80 fixed top-0 left-0 h-screen bg-gradient-to-b from-indigo-950 to-purple-900 text-white shadow-2xl z-20">
-        <div className="px-7 pt-7 pb-5 border-b border-white/10">
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60 mb-1">
-            AICTE Portal
-          </div>
-          <div className="text-2xl font-semibold tracking-wide">
-            Faculty Panel
-          </div>
-        </div>
-
-        <nav className="flex-1 px-4 pt-5 space-y-1 text-lg">
-          <SidebarItem label="Dashboard" icon=">" onClick={() => navigate("/faculty")} />
-          <SidebarItem label="My Submissions" icon=">" onClick={() => navigate("/faculty-submissions")} />
-          <SidebarItem label="New Submission" icon=">" onClick={() => navigate("/new-submission")} />
-          <SidebarItem label="Drafts" icon=">" onClick={() => navigate("/faculty-drafts")} />
-          <SidebarItem label="Profile" icon=">" active />
-        </nav>
-
-        <div className="px-4 pb-6 pt-4 border-t border-white/10 space-y-2 text-lg">
-          <SidebarItem label="Help & Support" icon=">" onClick={() => navigate("/help")} />
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-red-100 hover:bg-red-500/20 hover:text-white font-medium transition-all duration-150"
-          >
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+      <FacultySidebar
+        navItems={navItems}
+        profileItem={profileItem}
+        helpItem={helpItem}
+        onLogout={onLogout}
+      />
 
       {/* ➡️ RIGHT: Content Area */}
       <div className="flex-1 flex flex-col md:ml-80">

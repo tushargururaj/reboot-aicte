@@ -37,8 +37,8 @@ const AuthPage = ({ onLogin }) => {
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundImage: "linear-gradient(135deg, #fce9e2 0%, #ffe9c6 100%)" }}
     >
-      <div className="w-full max-w-4xl flex shadow-2xl rounded-xl overflow-hidden backdrop-blur-sm transform transition-transform duration-700 hover:scale-[1.01]">
-        <div className="hidden md:flex flex-col justify-between bg-white p-12 w-1/2 text-gray-800 rounded-tl-xl rounded-bl-xl">
+      <div className="w-full max-w-5xl lg:max-w-6xl flex shadow-2xl rounded-xl overflow-hidden backdrop-blur-sm transform transition-transform duration-700 hover:scale-[1.01]">
+        <div className="hidden md:flex flex-col justify-between bg-white p-12 md:w-5/12 lg:w-2/5 text-gray-800 rounded-tl-xl rounded-bl-xl">
           <h2 className="text-3xl font-extrabold text-gray-900 mb-6">
             AICTE Achievement Portal
           </h2>

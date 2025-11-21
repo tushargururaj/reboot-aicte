@@ -1,17 +1,54 @@
 // src/pages/FacultyDashboard.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-
-// Mock submissions for now (later plug into api/submissions.js)
-const mockSubmissions = [
-  { id: 3, status: "Rejected" },
-];
+import FacultySidebar from "../components/FacultySidebar";
+import {
+  getDefaultFacultyNavItems,
+  getProfileNavItem,
+  getHelpNavItem,
+} from "../utils/facultyNav";
 
 const FacultyDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
+  const [submissionCount, setSubmissionCount] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const navItems = getDefaultFacultyNavItems(navigate, "dashboard");
+  const profileItem = getProfileNavItem(navigate, false);
+  const helpItem = getHelpNavItem(navigate);
 
-  const totalCount = mockSubmissions.length;
+  useEffect(() => {
+    if (!user) return;
+    let isActive = true;
+
+    const loadSubmissionStats = async () => {
+      try {
+        setStatsLoading(true);
+        const res = await fetch("http://localhost:3000/submissions/mysubmissions", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (!res.ok) throw new Error("Failed to load submissions");
+        const data = await res.json();
+        if (isActive) {
+          setSubmissionCount(Array.isArray(data) ? data.length : 0);
+        }
+      } catch (err) {
+        console.error("Unable to load submission stats", err);
+        if (isActive) setSubmissionCount(0);
+      } finally {
+        if (isActive) setStatsLoading(false);
+      }
+    };
+
+    loadSubmissionStats();
+
+    return () => {
+      isActive = false;
+    };
+  }, [user]);
 
   // Note: Profile is now before AI Upload (swapped)
   const cards = [
@@ -68,7 +105,12 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
   // Helper data structure for the improved StatPills section
   const statData = [
-    { label: "Total Submissions", value: totalCount, dotColor: "bg-indigo-500", background: "bg-slate-100" },
+    {
+      label: "Total Submissions",
+      value: statsLoading ? "--" : submissionCount,
+      dotColor: "bg-indigo-500",
+      background: "bg-slate-100",
+    },
   ];
 
 
@@ -80,68 +122,12 @@ const FacultyDashboard = ({ user, onLogout }) => {
         backgroundImage: "linear-gradient(135deg, #f8f2ff 0%, #fff4ea 100%)",
       }}
     >
-      {/* ⬅️ LEFT: Fixed vertical sidebar (w-80) */}
-      <aside className="hidden md:flex flex-col w-80 fixed top-0 left-0 h-screen bg-gradient-to-b from-indigo-950 to-purple-900 text-white shadow-2xl z-20">
-        {/* Top: logo / title (Increased size) */}
-        <div className="px-7 pt-7 pb-5 border-b border-white/10">
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60 mb-1">
-            AICTE Portal
-          </div>
-          <div className="text-2xl font-semibold tracking-wide">
-            Faculty Panel
-          </div>
-        </div>
-
-        {/* Main nav (Increased font size, removed emojis) */}
-        <nav className="flex-1 px-4 pt-5 space-y-1 text-lg">
-          <SidebarItem
-            label="Dashboard"
-            icon=">"
-            active
-            onClick={() => navigate("/faculty")}
-          />
-          <SidebarItem
-            label="My Submissions"
-            icon=">"
-            onClick={() => navigate("/faculty-submissions")}
-          />
-          <SidebarItem
-            label="New Submission"
-            icon=">"
-            onClick={() => navigate("/new-submission")}
-          />
-          <SidebarItem
-            label="AI Upload"
-            icon=">"
-            onClick={() => navigate("/ai-upload")}
-          />
-          <SidebarItem
-            label="Upcoming Events"
-            icon=">"
-            onClick={() => navigate("/events")}
-          />
-          <SidebarItem
-            label="Profile"
-            icon=">"
-            onClick={() => navigate("/profile")}
-          />
-        </nav>
-
-        {/* Bottom: help + logout (Increased font size, removed emoji) */}
-        <div className="px-4 pb-6 pt-4 border-t border-white/10 space-y-2 text-lg">
-          <SidebarItem
-            label="Help & Support"
-            icon=">"
-            onClick={() => navigate("/help")}
-          />
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-red-100 hover:bg-red-500/20 hover:text-white font-medium transition-all duration-150"
-          >
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+      <FacultySidebar
+        navItems={navItems}
+        profileItem={profileItem}
+        helpItem={helpItem}
+        onLogout={onLogout}
+      />
 
       {/* ➡️ RIGHT: header + dashboard content (Added margin for fixed sidebar) */}
       <div className="flex-1 flex flex-col md:ml-80">
@@ -152,15 +138,15 @@ const FacultyDashboard = ({ user, onLogout }) => {
         <main className="flex-1 px-4 sm:px-8 py-6">
           <div className="max-w-6xl mx-auto flex flex-col gap-8"> {/* Increased gap */}
             {/* Welcome + quick stats */}
-            <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6"> {/* Increased gap */}
+            <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-8">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-semibold text-slate-900"> {/* Increased size */}
+                <h2 className="text-4xl sm:text-5xl font-semibold text-slate-900">
                   WELCOME,{" "}
                   <span className="uppercase">
                     {user?.name || user?.email || "Faculty Member"}
                   </span>
                 </h2>
-                <p className="mt-1 text-base text-slate-700"> {/* Increased size */}
+                <p className="mt-2 text-lg text-slate-700">
                   Use the cards below or the left menu to quickly navigate to
                   your key tasks.
                 </p>
@@ -173,12 +159,12 @@ const FacultyDashboard = ({ user, onLogout }) => {
                     key={stat.label}
                     className={`flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 shadow-sm min-w-[120px] ${stat.background}`}
                   >
-                    <span className="text-3xl font-bold text-slate-900 leading-none">
-                      {stat.value}
-                    </span>
-                    <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-600">
-                      {stat.label.replace(' Submissions', '')}
-                    </span>
+                  <span className="text-4xl font-extrabold text-slate-900 leading-none">
+                    {stat.value}
+                  </span>
+                  <span className="mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-slate-600 text-center">
+                    {stat.label}
+                  </span>
                   </div>
                 ))}
               </div>
@@ -187,19 +173,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
             </section>
 
             {/* Cards grid – cards narrower, taller, bigger text */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {cards.map((card) => (
                 <button
                   key={card.key}
                   onClick={card.onClick}
-                  className={`group relative text-left bg-white/95 rounded-2xl border ${card.accent} shadow-sm hover:shadow-md px-5 py-6 transition-all duration-200 hover:-translate-y-[3px] focus:outline-none focus:ring-2 focus:ring-indigo-300 min-h-[170px] sm:min-h-[190px]`}
+                  className={`group relative text-left bg-white/95 rounded-2xl border ${card.accent} shadow-md hover:shadow-lg px-6 py-7 transition-all duration-200 hover:-translate-y-[4px] focus:outline-none focus:ring-2 focus:ring-indigo-300 min-h-[190px] sm:min-h-[210px]`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-xl font-semibold text-slate-900 mb-2"> {/* Increased size */}
+                      <h3 className="text-2xl font-semibold text-slate-900 mb-2">
                         {card.title}
                       </h3>
-                      <p className="text-base text-slate-600 leading-snug"> {/* Increased size */}
+                      <p className="text-lg text-slate-600 leading-snug">
                         {card.description}
                       </p>
                     </div>
@@ -217,7 +203,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
             {/* Lower message area */}
             <section className="mt-2 pb-3">
-              <p className="text-sm text-slate-500 text-center">
+              <p className="text-base text-slate-500 text-center">
                 More modules (analytics, download reports, and department-level
                 summaries) can be added here as the portal grows.
               </p>
@@ -226,25 +212,6 @@ const FacultyDashboard = ({ user, onLogout }) => {
         </main>
       </div>
     </div>
-  );
-};
-
-// Sidebar item helper component – bigger fonts + stronger active state
-const SidebarItem = ({ label, icon, active = false, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 " +
-        (active
-          ? "bg-white/18 font-semibold shadow-sm border border-white/10"
-          : "text-white/85 hover:bg-white/10 hover:text-white")
-      }
-    >
-      {/* Icon is simply text to keep it professional and uniform */}
-      <span className="text-base font-bold">{icon}</span>
-      <span className="text-base">{label}</span>
-    </button>
   );
 };
 

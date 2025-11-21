@@ -48,14 +48,14 @@ const Login = ({ onLogin, switchToSignup }) => {
   };
 
   return (
-    <div className="flex-1 p-8 rounded-tr-xl rounded-br-xl shadow-2xl bg-gradient-to-br from-indigo-800 to-purple-900 transition-all duration-700 ease-in-out transform">
-      <h3 className="text-3xl font-light text-white mb-10 text-left pt-2">
+    <div className="flex-1 p-10 rounded-tr-xl rounded-br-xl shadow-2xl bg-gradient-to-br from-indigo-800 to-purple-900 transition-all duration-700 ease-in-out transform">
+      <h3 className="text-4xl md:text-5xl font-semibold tracking-wide text-white mb-10 text-left pt-2">
         Login
       </h3>
 
       <form onSubmit={handleLogin} className="space-y-6">
         <div>
-          <label className="block text-sm font-light text-gray-300">
+          <label className="block text-base md:text-lg font-medium text-gray-100">
             Username (Email)
           </label>
           <input
@@ -64,12 +64,12 @@ const Login = ({ onLogin, switchToSignup }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white placeholder-gray-400 focus:outline-none focus:border-pink-400"
+            className="mt-2 block w-full px-5 py-3 rounded-xl border border-white/40 bg-white/10 backdrop-blur text-white text-lg placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-pink-400/40 focus:border-pink-300 shadow-inner transition"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-light text-gray-300">
+          <label className="block text-base md:text-lg font-medium text-gray-100">
             Password
           </label>
           <input
@@ -78,7 +78,7 @@ const Login = ({ onLogin, switchToSignup }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white placeholder-gray-400 focus:outline-none focus:border-pink-400"
+            className="mt-2 block w-full px-5 py-3 rounded-2xl border border-white/60 bg-gradient-to-br from-purple-900/70 to-indigo-900/70 backdrop-blur text-white text-lg placeholder-white/80 focus:outline-none focus:ring-2 focus:ring-pink-400/50 focus:border-pink-200 shadow-lg transition"
           />
         </div>
 
@@ -88,7 +88,7 @@ const Login = ({ onLogin, switchToSignup }) => {
             onClick={() =>
               alert("Forgot password is not implemented yet.")
             }
-            className="text-xs font-light text-gray-300 hover:text-pink-300 mb-4"
+            className="text-sm font-medium text-gray-200 hover:text-pink-300 mb-4 transition"
           >
             Forgot your password?
           </button>
@@ -96,7 +96,7 @@ const Login = ({ onLogin, switchToSignup }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 rounded-lg text-lg font-semibold text-gray-800 bg-gray-100 hover:bg-white transition duration-300 shadow-md disabled:bg-gray-400"
+            className="w-full flex justify-center py-3 px-6 rounded-2xl text-xl font-semibold text-gray-900 bg-white hover:bg-pink-50 transition duration-300 shadow-xl disabled:bg-gray-400 disabled:text-gray-200"
           >
             {loading ? "Logging In..." : "Login"}
           </button>
@@ -112,7 +112,7 @@ const Login = ({ onLogin, switchToSignup }) => {
       <div className="mt-8 text-center">
         <button
           onClick={switchToSignup}
-          className="text-sm font-light text-gray-300 hover:text-pink-300 transition duration-300"
+          className="text-base md:text-lg font-semibold tracking-wide text-gray-100 hover:text-pink-300 transition duration-300"
         >
           New user? Click here to Sign Up
         </button>
