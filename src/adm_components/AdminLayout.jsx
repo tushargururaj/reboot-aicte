@@ -46,23 +46,23 @@ const AdminLayout = ({ user, activeKey, title, onLogout, children }) => {
 
   return (
     <div
-      className="min-h-screen flex"
+      className="min-h-screen flex text-[1.08rem] sm:text-[1.13rem]"
       style={{
         backgroundImage: "linear-gradient(135deg, #fef5f4 0%, #fff7f7 100%)",
       }}
     >
       {/* Fixed Sidebar */}
-      <aside className="hidden md:flex flex-col w-80 fixed top-0 left-0 h-screen bg-gradient-to-b from-red-900 to-fuchsia-900 text-white shadow-2xl z-20">
-        <div className="px-7 pt-7 pb-5 border-b border-white/10">
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60 mb-1">
+      <aside className="hidden md:flex flex-col w-80 fixed top-0 left-0 h-screen bg-gradient-to-b from-red-900 to-fuchsia-900 text-white shadow-2xl z-20 text-[1.08rem]">
+        <div className="px-8 pt-10 pb-7 border-b border-white/10">
+          <div className="text-base font-semibold uppercase tracking-[0.22em] text-white/60 mb-1">
             AICTE Portal
           </div>
-          <div className="text-2xl font-semibold tracking-wide">
+          <div className="text-3xl font-semibold tracking-wide">
             Admin Panel
           </div>
         </div>
 
-        <nav className="flex-1 px-4 pt-5 space-y-1 text-lg">
+        <nav className="flex-1 px-5 pt-7 space-y-2 text-xl">
           {ADMIN_NAV_ITEMS.map(item => (
             <AdminSidebarItem
               key={item.key}
@@ -76,7 +76,7 @@ const AdminLayout = ({ user, activeKey, title, onLogout, children }) => {
         </nav>
 
         {/* Bottom Section: Profile, Help, Logout */}
-        <div className="px-4 pb-6 pt-4 border-t border-white/10 space-y-2 text-lg">
+        <div className="px-5 pb-8 pt-6 border-t border-white/10 space-y-3 text-xl">
           <AdminSidebarItem
             label="Your Profile"
             icon={<Icons.Profile />}
@@ -90,7 +90,7 @@ const AdminLayout = ({ user, activeKey, title, onLogout, children }) => {
           />
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-red-100 hover:bg-red-700/50 hover:text-white font-medium transition-all duration-150"
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-red-100 hover:bg-red-700/50 hover:text-white font-semibold transition-all duration-150 text-lg"
           >
             <span>Logout</span>
           </button>
@@ -98,9 +98,9 @@ const AdminLayout = ({ user, activeKey, title, onLogout, children }) => {
       </aside>
 
       {/* Content Area */}
-      <div className="flex-1 flex flex-col md:ml-80 pt-20">
+      <div className="flex-1 flex flex-col md:ml-80 pt-24">
         <AdminHeader title={title} user={user} onLogout={onLogout} />
-        <main className="flex-1 px-4 sm:px-8 py-6">
+        <main className="flex-1 px-6 sm:px-12 py-8">
           <div className="max-w-6xl mx-auto">
             {children}
           </div>

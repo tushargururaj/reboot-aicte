@@ -83,10 +83,10 @@ const FacultyDetails = ({ user, onLogout }) => {
                 </div>
 
                 {/* Faculty Info Header */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex items-center gap-5">
+                <div className="bg-gradient-to-r from-yellow-50 to-slate-100 p-8 rounded-xl border border-slate-200 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="flex items-center gap-7">
                         {/* Avatar */}
-                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-fuchsia-600 to-purple-700 flex items-center justify-center text-white text-2xl font-bold shadow-md shrink-0">
+                        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-fuchsia-600 to-purple-700 flex items-center justify-center text-white text-3xl font-extrabold shadow-lg shrink-0">
                             {(() => {
                                 const name = faculty.name || "";
                                 const cleanName = name.replace(/^(Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.)\s+/i, "");
@@ -98,16 +98,16 @@ const FacultyDetails = ({ user, onLogout }) => {
                         </div>
 
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-900">{faculty.name}</h2>
-                            <div className="mt-1 flex flex-wrap gap-x-6 gap-y-2 text-slate-600 text-sm">
-                                <span className="flex items-center gap-1">
-                                    <span className="font-medium text-slate-800">Email:</span> {faculty.email}
+                            <h2 className="text-3xl font-extrabold text-slate-900">{faculty.name}</h2>
+                            <div className="mt-2 flex flex-wrap gap-x-8 gap-y-3 text-slate-700 text-lg">
+                                <span className="flex items-center gap-2">
+                                    <span className="font-bold text-slate-800">Email:</span> {faculty.email}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                    <span className="font-medium text-slate-800">Department:</span> {faculty.dept}
+                                <span className="flex items-center gap-2">
+                                    <span className="font-bold text-slate-800">Department:</span> {faculty.dept}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                    <span className="font-medium text-slate-800">Designation:</span> {faculty.designation}
+                                <span className="flex items-center gap-2">
+                                    <span className="font-bold text-slate-800">Designation:</span> {faculty.designation}
                                 </span>
                             </div>
                         </div>
@@ -117,44 +117,44 @@ const FacultyDetails = ({ user, onLogout }) => {
                 {/* Submissions Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-semibold text-slate-900">Submission History</h3>
+                        <h3 className="text-2xl font-bold text-slate-900">Submission History</h3>
                         <button
                             onClick={handleExport}
                             disabled={submissions.length === 0}
-                            className="px-4 py-2 bg-fuchsia-50 text-fuchsia-700 rounded-lg hover:bg-fuchsia-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 transition-all font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2 text-lg"
                         >
                             Export to Excel
                         </button>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden ring-1 ring-slate-900/5">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-slate-200">
-                                <thead className="bg-slate-50">
+                            <table className="min-w-full divide-y divide-slate-200 text-[1.15rem]">
+                                <thead className="bg-gradient-to-r from-yellow-50 to-slate-100 text-slate-700">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Proof</th>
+                                        <th className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">Title</th>
+                                        <th className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">Category</th>
+                                        <th className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">Date</th>
+                                        <th className="px-8 py-6 text-right text-lg font-bold uppercase tracking-wider border-b border-slate-200">Proof</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-slate-200">
                                     {submissions.length === 0 ? (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-8 text-center text-slate-500">No submissions found for this faculty.</td>
+                                            <td colSpan="4" className="px-8 py-10 text-center text-slate-500 text-xl">No submissions found for this faculty.</td>
                                         </tr>
                                     ) : (
                                         submissions.map((sub) => (
-                                            <tr key={sub.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{sub.title}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{sub.category}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{sub.date}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <tr key={sub.id} className="hover:bg-yellow-50/30 transition-colors duration-200">
+                                                <td className="px-8 py-5 whitespace-nowrap text-lg font-semibold text-slate-900">{sub.title}</td>
+                                                <td className="px-8 py-5 whitespace-nowrap text-lg text-slate-700">{sub.category}</td>
+                                                <td className="px-8 py-5 whitespace-nowrap text-lg text-slate-700">{sub.date}</td>
+                                                <td className="px-8 py-5 whitespace-nowrap text-right text-lg font-semibold">
                                                     <a
                                                         href={sub.docUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                                                        className="text-blue-600 hover:text-blue-800 hover:underline text-lg font-bold"
                                                     >
                                                         View / Download
                                                     </a>

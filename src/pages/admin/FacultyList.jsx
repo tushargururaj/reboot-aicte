@@ -82,36 +82,36 @@ const FacultyList = ({ user, onLogout }) => {
                 {/* Table */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead className="bg-slate-50">
+                        <table className="min-w-full divide-y divide-slate-200 text-[1.15rem]">
+                            <thead className="bg-gradient-to-r from-yellow-50 to-slate-100 text-slate-700">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Department</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Designation</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
+                                    <th className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">Name</th>
+                                    <th className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">Email</th>
+                                    <th className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">Department</th>
+                                    <th className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">Designation</th>
+                                    <th className="px-8 py-6 text-right text-lg font-bold uppercase tracking-wider border-b border-slate-200">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-slate-200">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-8 text-center text-slate-500">Loading faculty data...</td>
+                                        <td colSpan="5" className="px-8 py-10 text-center text-slate-500 text-xl">Loading faculty data...</td>
                                     </tr>
                                 ) : faculty.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-8 text-center text-slate-500">No faculty found.</td>
+                                        <td colSpan="5" className="px-8 py-10 text-center text-slate-500 text-xl">No faculty found.</td>
                                     </tr>
                                 ) : (
                                     faculty.map((fac) => (
-                                        <tr key={fac.id} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{fac.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{fac.email}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{fac.dept}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{fac.designation}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <tr key={fac.id} className="hover:bg-yellow-50/30 transition-colors duration-200">
+                                            <td className="px-8 py-5 whitespace-nowrap text-lg font-semibold text-slate-900">{fac.name}</td>
+                                            <td className="px-8 py-5 whitespace-nowrap text-lg text-slate-700">{fac.email}</td>
+                                            <td className="px-8 py-5 whitespace-nowrap text-lg text-slate-700">{fac.dept}</td>
+                                            <td className="px-8 py-5 whitespace-nowrap text-lg text-slate-700">{fac.designation}</td>
+                                            <td className="px-8 py-5 whitespace-nowrap text-right text-lg font-semibold">
                                                 <button
                                                     onClick={() => navigate(`/admin/faculty/${fac.id}`)}
-                                                    className="text-fuchsia-600 hover:text-fuchsia-900 font-semibold"
+                                                    className="text-fuchsia-600 hover:text-fuchsia-900 font-bold text-lg"
                                                 >
                                                     View Submissions
                                                 </button>
