@@ -37,22 +37,21 @@ const FormLayout = ({ title, user, onBack, onLogout, children }) => {
         </div>
 
         <nav className="flex-1 px-4 pt-5 space-y-1 text-base overflow-auto">
-          <SidebarItem label="Dashboard" icon="📊" onClick={() => navigate("/faculty")} />
-          <SidebarItem label="My Submissions" icon="📄" onClick={() => navigate("/faculty-submissions")} />
-          <SidebarItem label="New Submission" icon="➕" onClick={() => navigate("/new-submission")} active={title.includes("Submission") || title.includes("FDP") || title.includes("MOOCs")} />
-          <SidebarItem label="Drafts" icon="📝" onClick={() => navigate("/faculty-drafts")} />
-          <SidebarItem label="AI Upload" icon="🤖" onClick={() => navigate("/ai-upload")} />
-          <SidebarItem label="Upcoming Events" icon="📅" onClick={() => navigate("/events")} />
-          <SidebarItem label="Profile" icon="👤" onClick={() => navigate("/profile")} />
+          <SidebarItem label="Dashboard" icon=">" onClick={() => navigate("/faculty")} />
+          <SidebarItem label="My Submissions" icon=">" onClick={() => navigate("/faculty-submissions")} />
+          <SidebarItem label="New Submission" icon=">" onClick={() => navigate("/new-submission")} active={title.includes("Submission") || title.includes("FDP") || title.includes("MOOCs")} />
+          <SidebarItem label="Drafts" icon=">" onClick={() => navigate("/faculty-drafts")} />
+          <SidebarItem label="AI Upload" icon=">" onClick={() => navigate("/ai-upload")} />
+          <SidebarItem label="Upcoming Events" icon=">" onClick={() => navigate("/events")} />
         </nav>
 
         <div className="px-4 pb-6 pt-4 border-t border-white/10 space-y-2 text-base">
-          <SidebarItem label="Help & Support" icon="❓" onClick={() => navigate("/help")} />
+          <SidebarItem label="Profile" icon=">" onClick={() => navigate("/profile")} />
+          <SidebarItem label="Help & Support" icon=">" onClick={() => navigate("/help")} />
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-red-100 hover:bg-red-500/20 hover:text-white font-medium transition-all duration-150"
           >
-            <span className="text-lg">🚪</span>
             <span>Logout</span>
           </button>
         </div>
@@ -101,12 +100,12 @@ const SidebarItem = ({ label, icon, active = false, onClick }) => (
   <button
     onClick={onClick}
     className={
-      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 " +
+      "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all duration-150 text-base font-medium tracking-wide " +
       (active ? "bg-white/18 font-semibold" : "text-white/85 hover:bg-white/10 hover:text-white")
     }
   >
-    <span className="text-lg">{icon}</span>
-    <span className="text-sm sm:text-base">{label}</span>
+    <span className="text-lg font-bold">{icon}</span>
+    <span className="text-base sm:text-lg">{label}</span>
   </button>
 );
 

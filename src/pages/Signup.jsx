@@ -45,6 +45,12 @@ const Signup = ({ switchToLogin }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const labelClasses = "block text-base md:text-lg font-medium text-gray-100";
+  const fieldClasses =
+    "mt-2 block w-full px-4 py-3 rounded-xl border border-white/30 bg-white/10 backdrop-blur text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-pink-400/40 focus:border-pink-200 shadow-inner transition";
+  const passwordFieldClasses =
+    "mt-2 block w-full px-4 py-3 rounded-2xl border border-white/60 bg-gradient-to-br from-purple-900/70 to-indigo-900/70 backdrop-blur text-white placeholder-white/85 focus:outline-none focus:ring-2 focus:ring-pink-400/60 focus:border-pink-100 shadow-lg transition";
+
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -112,8 +118,8 @@ const Signup = ({ switchToLogin }) => {
   };
 
   return (
-    <div className="flex-1 p-8 rounded-xl md:rounded-l-none bg-gradient-to-br from-indigo-800 to-purple-900 text-white transition-all duration-700 ease-in-out transform">
-      <h3 className="text-3xl font-light text-white mb-8 text-left pt-2">
+    <div className="flex-1 p-10 rounded-xl md:rounded-l-none bg-gradient-to-br from-indigo-800 to-purple-900 text-white transition-all duration-700 ease-in-out transform">
+      <h3 className="text-4xl md:text-5xl font-semibold tracking-wide text-white mb-10 text-left pt-2">
         Create Account
       </h3>
 
@@ -125,49 +131,51 @@ const Signup = ({ switchToLogin }) => {
 
       <form
         onSubmit={view === "form" ? handleInitialSubmit : handleVerify}
-        className="space-y-4"
+        className="space-y-5"
       >
         {view === "form" ? (
           <>
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-light text-gray-300">
-                Full Name (Mandatory)
-              </label>
-              <input
-                name="name"
-                type="text"
-                required
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-light text-gray-300">
-                Email Address (Mandatory)
-              </label>
-              <input
-                name="email"
-                type="email"
-                required
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white"
-              />
+            {/* Full Name + Email */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClasses}>
+                  Full Name (Mandatory)
+                </label>
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                  className={fieldClasses}
+                />
+              </div>
+              <div>
+                <label className={labelClasses}>
+                  Email Address (Mandatory)
+                </label>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className={fieldClasses}
+                />
+              </div>
             </div>
 
             {/* Role + Admin Key */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-light text-gray-300">
+                <label className={labelClasses}>
                   Role (Mandatory)
                 </label>
                 <select
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-indigo-900 text-white"
+                  className="mt-2 block w-full px-4 py-3 rounded-xl border border-white/30 bg-indigo-900/70 text-white focus:outline-none focus:ring-2 focus:ring-pink-400/40 focus:border-pink-200 transition"
                 >
                   <option className="text-gray-900 bg-white" value="faculty">
                     Faculty
@@ -180,7 +188,7 @@ const Signup = ({ switchToLogin }) => {
 
               {formData.role === "admin" ? (
                 <div>
-                  <label className="block text-sm font-light text-gray-300">
+                  <label className={labelClasses}>
                     Admin Core Key (Mandatory)
                   </label>
                   <input
@@ -188,7 +196,8 @@ const Signup = ({ switchToLogin }) => {
                     type="password"
                     required
                     onChange={handleChange}
-                    className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white"
+                    placeholder="Enter admin key"
+                    className={passwordFieldClasses}
                   />
                 </div>
               ) : (
@@ -197,9 +206,9 @@ const Signup = ({ switchToLogin }) => {
             </div>
 
             {/* Password */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-light text-gray-300">
+                <label className={labelClasses}>
                   Password (Mandatory)
                 </label>
                 <input
@@ -207,13 +216,14 @@ const Signup = ({ switchToLogin }) => {
                   type="password"
                   required
                   onChange={handleChange}
-                  className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white"
+                  placeholder="Create a password"
+                  className={passwordFieldClasses}
                 />
                 <PasswordStrengthBar password={formData.password} />
               </div>
 
               <div>
-                <label className="block text-sm font-light text-gray-300">
+                <label className={labelClasses}>
                   Confirm Password (Mandatory)
                 </label>
                 <input
@@ -221,14 +231,15 @@ const Signup = ({ switchToLogin }) => {
                   type="password"
                   required
                   onChange={handleChange}
-                  className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white"
+                  placeholder="Re-enter password"
+                  className={passwordFieldClasses}
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 rounded-lg text-lg font-semibold text-gray-800 bg-green-400 hover:bg-green-300 transition duration-300 shadow-md mt-6"
+              className="w-full flex justify-center py-3 px-6 rounded-2xl text-xl font-semibold text-gray-900 bg-white hover:bg-pink-50 transition duration-300 shadow-xl mt-6"
             >
               Continue (Verify Email)
             </button>
@@ -236,18 +247,18 @@ const Signup = ({ switchToLogin }) => {
         ) : (
           <>
             {/* OTP View */}
-            <div className="pt-10">
-              <label className="block text-sm font-light text-gray-300 mb-2">
+            <div className="pt-6">
+              <label className={labelClasses + " mb-2"}>
                 Enter OTP (Mock: {MOCK_OTP})
               </label>
               <input
                 value={otpInput}
                 onChange={(e) => setOtpInput(e.target.value)}
                 maxLength={6}
-                className="mt-1 block w-full px-4 py-2 border-b-2 border-gray-600 bg-transparent text-white text-center text-lg tracking-widest focus:outline-none focus:border-pink-400"
+                className="mt-2 block w-full px-6 py-3 rounded-2xl border border-white/40 bg-white/10 backdrop-blur text-white text-center text-2xl tracking-[0.6em] focus:outline-none focus:ring-2 focus:ring-pink-400/40 focus:border-pink-200 shadow-lg"
               />
 
-              <p className="mt-4 text-sm text-gray-400 text-right">
+              <p className="mt-4 text-base text-gray-200 text-right">
                 <button
                   type="button"
                   onClick={() =>
@@ -263,7 +274,7 @@ const Signup = ({ switchToLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 rounded-lg text-lg font-semibold text-gray-800 bg-green-400 hover:bg-green-300 transition duration-300 shadow-md mt-8 disabled:bg-gray-400"
+              className="w-full flex justify-center py-3 px-6 rounded-2xl text-xl font-semibold text-gray-900 bg-white hover:bg-pink-50 transition duration-300 shadow-xl mt-8 disabled:bg-gray-400 disabled:text-gray-200"
             >
               {loading ? "Registering..." : "Verify & Sign Up"}
             </button>
@@ -274,7 +285,7 @@ const Signup = ({ switchToLogin }) => {
       <div className="mt-8 text-center">
         <button
           onClick={switchToLogin}
-          className="text-sm font-light text-gray-300 hover:text-pink-300 transition duration-300"
+          className="text-base font-medium text-gray-200 hover:text-pink-300 transition duration-300"
         >
           Already have an account? Sign In
         </button>

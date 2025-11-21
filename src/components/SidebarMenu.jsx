@@ -12,21 +12,21 @@ const SidebarMenu = ({ isOpen, onClose, onLogout, items = [] }) => {
         onClick={onClose}
       />
       {/* Drawer */}
-      <aside className="fixed top-0 left-0 h-full w-64 bg-indigo-950 text-white z-50 shadow-2xl">
-        <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
-          <span className="font-semibold tracking-wide text-sm">Menu</span>
+      <aside className="fixed top-0 left-0 h-full w-72 bg-indigo-950 text-white z-50 shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
+          <span className="font-semibold tracking-wide text-base uppercase">Menu</span>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-white/10"
+            className="p-2 rounded-full hover:bg-white/10 text-lg"
           >
             ✕
           </button>
         </div>
-        <nav className="px-4 py-4 space-y-1 text-sm">
+        <nav className="px-5 py-5 space-y-2 text-base">
           {items.map((item) => (
             <button
               key={item.key}
-              className="w-full text-left px-3 py-2 rounded-md hover:bg-white/10"
+              className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 font-medium tracking-wide"
               onClick={() => {
                 if (item.onClick) item.onClick();
                 onClose();
@@ -38,7 +38,7 @@ const SidebarMenu = ({ isOpen, onClose, onLogout, items = [] }) => {
 
           {onLogout && (
             <button
-              className="mt-4 w-full text-left px-3 py-2 rounded-md bg-red-500/80 hover:bg-red-400 text-sm font-medium"
+              className="mt-6 w-full text-left px-4 py-3 rounded-lg bg-red-500/80 hover:bg-red-400 text-base font-semibold tracking-wide"
               onClick={() => {
                 onClose();
                 onLogout();

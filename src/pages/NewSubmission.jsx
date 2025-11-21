@@ -1,8 +1,14 @@
 // src/pages/NewSubmission.jsx
 import React, { useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { getDraftsForUser } from "../utils/submissionsClient";
+import FacultySidebar from "../components/FacultySidebar";
+import {
+  getDefaultFacultyNavItems,
+  getProfileNavItem,
+  getHelpNavItem,
+} from "../utils/facultyNav";
 
 // 📝 NOTE: If 'Inter' font is not globally imported (e.g., in index.html or index.css), 
 // it won't be applied. Assuming a global font setup for this change.
@@ -133,6 +139,9 @@ const NewSubmission = ({ user, onBack, onLogout }) => {
     () => getDraftsForUser(userId).length, 
     [userId]
   );
+  const navItems = getDefaultFacultyNavItems(navigate, "new-submission");
+  const profileItem = getProfileNavItem(navigate, false);
+  const helpItem = getHelpNavItem(navigate);
   
   return (
     <div
@@ -141,70 +150,12 @@ const NewSubmission = ({ user, onBack, onLogout }) => {
         backgroundImage: "linear-gradient(135deg, #f8f2ff 0%, #fff4ea 100%)",
       }}
     >
-      {/* ⬅️ LEFT: Fixed Sidebar (w-80 and h-screen) */}
-      <aside className="hidden md:flex flex-col w-80 fixed top-0 left-0 h-screen bg-gradient-to-b from-indigo-950 to-purple-900 text-white shadow-2xl z-20">
-        <div className="px-7 pt-7 pb-5 border-b border-white/10">
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60 mb-1">
-            AICTE Portal
-          </div>
-          <div className="text-2xl font-semibold tracking-wide">
-            Faculty Panel
-          </div>
-        </div>
-
-        <nav className="flex-1 px-4 pt-5 space-y-1 text-lg">
-          <SidebarItem
-            label="Dashboard"
-            icon=">"
-            onClick={() => navigate("/faculty")}
-          />
-          <SidebarItem
-            label="My Submissions"
-            icon=">"
-            onClick={() => navigate("/faculty-submissions")}
-          />
-          <SidebarItem
-            label="New Submission"
-            icon=">"
-            active
-            onClick={() => navigate("/new-submission")}
-          />
-          <SidebarItem
-            label="Drafts"
-            icon=">"
-            onClick={() => navigate("/faculty-drafts")}
-          />
-          <SidebarItem
-            label="AI Upload"
-            icon=">"
-            onClick={() => navigate("/ai-upload")}
-          />
-          <SidebarItem
-            label="Upcoming Events"
-            icon=">"
-            onClick={() => navigate("/events")}
-          />
-          <SidebarItem
-            label="Profile"
-            icon=">"
-            onClick={() => navigate("/profile")}
-          />
-        </nav>
-
-        <div className="px-4 pb-6 pt-4 border-t border-white/10 space-y-2 text-lg">
-          <SidebarItem
-            label="Help & Support"
-            icon=">"
-            onClick={() => navigate("/help")}
-          />
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-red-100 hover:bg-red-500/20 hover:text-white font-medium transition-all duration-150"
-          >
-            <span className="text-lg">Logout</span>
-          </button>
-        </div>
-      </aside>
+      <FacultySidebar
+        navItems={navItems}
+        profileItem={profileItem}
+        helpItem={helpItem}
+        onLogout={onLogout}
+      />
 
       {/* ➡️ RIGHT: Content Area (Adjusted margin to account for fixed sidebar) */}
       <div className="flex-1 flex flex-col md:ml-80">
@@ -306,24 +257,6 @@ const NewSubmission = ({ user, onBack, onLogout }) => {
         </main>
       </div>
     </div>
-  );
-};
-
-// Sidebar item component (Updated for no-emojis and increased size)
-const SidebarItem = ({ label, icon, active = false, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 " +
-        (active
-          ? "bg-white/18 font-semibold shadow-sm border border-white/10"
-          : "text-white/85 hover:bg-white/10 hover:text-white")
-      }
-    >
-      <span className="text-lg font-bold">{icon}</span>
-      <span className="text-base">{label}</span>
-    </button>
   );
 };
 
