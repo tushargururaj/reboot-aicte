@@ -96,8 +96,36 @@ const SubmissionTable = ({ user, onLogout }) => {
         csvRows.push(`"${description}"`);
         csvRows.push(""); // Blank row for spacing
 
-        // Special handling for CAY-grouped tables (6.1.2.1.1)
-        if (categoryId === "6.1.2.1.1") {
+        if (categoryId === "6.1.2.2.1") {
+            // Export layout matches frontend: S.N., Name, CAYm1, CAYm2, CAYm3
+            // Group submissions by faculty and calculate capped marks for CAYm1, CAYm2, CAYm3
+            const facultyMap = new Map();
+            submissions.forEach(sub => {
+                if (!facultyMap.has(sub.facultyName)) {
+                    facultyMap.set(sub.facultyName, { caym1: 0, caym2: 0, caym3: 0 });
+                }
+                const counts = facultyMap.get(sub.facultyName);
+                // Apply marks logic: 2-5 days = 3, >5 days = 5, max 5 per cell
+                let marks = 0;
+                if (sub.days) {
+                    const days = Number(sub.days);
+                    if (days > 5) marks = 5;
+                    else if (days >= 2) marks = 3;
+                } else {
+                    marks = Number(sub.marks) || 0;
+                }
+                if (sub.cayGroup === 'CAYm1') counts.caym1 = Math.min(5, counts.caym1 + marks);
+                else if (sub.cayGroup === 'CAYm2') counts.caym2 = Math.min(5, counts.caym2 + marks);
+                else if (sub.cayGroup === 'CAYm3') counts.caym3 = Math.min(5, counts.caym3 + marks);
+            });
+            // Header
+            csvRows.push(["S.N.", "Name of the Faculty as Resource Person or Participant", "CAYm1", "CAYm2", "CAYm3"].join(","));
+            // Data rows
+            let sn = 1;
+            facultyMap.forEach((counts, facultyName) => {
+                csvRows.push([sn++, facultyName, counts.caym1 || '-', counts.caym2 || '-', counts.caym3 || '-'].map(item => `"${item}"`).join(","));
+            });
+        } else if (categoryId === "6.1.2.1.1") {
             const groups = {
                 'CAYm1': submissions.filter(s => s.cayGroup === 'CAYm1'),
                 'CAYm2': submissions.filter(s => s.cayGroup === 'CAYm2'),
@@ -152,46 +180,47 @@ const SubmissionTable = ({ user, onLogout }) => {
         };
 
         return (
-            <table className="min-w-full divide-y divide-slate-200 text-[1.15rem]">
+            <table className="min-w-full divide-y divide-slate-200 text-[1.05rem]">
                 <thead className="bg-gradient-to-r from-yellow-50 to-slate-100 text-slate-700">
                     <tr>
                         {columns.map((col) => (
-                            <th key={col.key} className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">
+                            <th key={col.key} className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider border-b border-slate-200">
                                 {col.label}
                             </th>
                         ))}
-                        <th className="px-8 py-6 text-right text-lg font-bold uppercase tracking-wider border-b border-slate-200">Proof</th>
+                        <th className="px-6 py-5 text-right text-sm font-bold uppercase tracking-wider border-b border-slate-200">Proof</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
                     {loading ? (
-                        <tr><td colSpan={columns.length + 1} className="px-8 py-10 text-center text-slate-500 text-xl">Loading...</td></tr>
+                        <tr><td colSpan={columns.length + 1} className="px-6 py-8 text-center text-slate-500 text-lg">Loading...</td></tr>
                     ) : (
                         Object.entries(groups).map(([groupName, groupSubmissions]) => (
                             <React.Fragment key={groupName}>
                                 <tr className="bg-slate-50/50 border-t border-slate-200">
-                                    <td colSpan={columns.length + 1} className="px-8 py-6 text-center text-2xl font-bold text-slate-700 uppercase tracking-wide">
+                                    <td colSpan={columns.length + 1} className="px-6 py-4 text-center text-xl font-bold text-slate-700 uppercase tracking-wide">
                                         {groupName}
                                     </td>
                                 </tr>
                                 {groupSubmissions.length === 0 ? (
-                                    <tr><td colSpan={columns.length + 1} className="px-8 py-8 text-center text-slate-400 italic text-lg">No data for {groupName}</td></tr>
+                                    <tr><td colSpan={columns.length + 1} className="px-6 py-6 text-center text-slate-400 italic text-base">No data for {groupName}</td></tr>
                                 ) : (
                                     groupSubmissions.map((sub, idx) => (
                                         <tr key={sub.id} className="hover:bg-yellow-50/30 transition-colors duration-200">
                                             {columns.map((col) => (
-                                                <td key={col.key} className="px-8 py-5 whitespace-nowrap text-lg text-slate-700">
+                                                <td key={col.key} className="px-6 py-4 whitespace-nowrap text-base text-slate-600">
                                                     {col.render(sub, idx)}
                                                 </td>
                                             ))}
-                                            <td className="px-8 py-5 whitespace-nowrap text-right font-semibold">
+                                            <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
                                                 <a
                                                     href={sub.docUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="inline-block px-5 py-2 rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-base font-bold transition-colors"
+                                                    className="inline-block px-4 py-1.5 rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-xs font-bold transition-colors"
+                                                    download
                                                 >
-                                                    View
+                                                    Download Proof
                                                 </a>
                                             </td>
                                         </tr>
@@ -207,47 +236,54 @@ const SubmissionTable = ({ user, onLogout }) => {
 
     // Render CAY column-based table for 6.1.2.2.1
     const renderCAYColumnTable = () => {
-        // Group submissions by faculty
+        // Group submissions by faculty and calculate capped marks for CAYm1, CAYm2, CAYm3
         const facultyMap = new Map();
         submissions.forEach(sub => {
             if (!facultyMap.has(sub.facultyName)) {
                 facultyMap.set(sub.facultyName, { caym1: 0, caym2: 0, caym3: 0 });
             }
             const counts = facultyMap.get(sub.facultyName);
-            const marks = Number(sub.marks) || 0;
-
-            if (sub.cayGroup === 'CAYm1') counts.caym1 += marks;
-            else if (sub.cayGroup === 'CAYm2') counts.caym2 += marks;
-            else if (sub.cayGroup === 'CAYm3') counts.caym3 += marks;
+            // Apply marks logic: 2-5 days = 3, >5 days = 5, max 5 per cell
+            let marks = 0;
+            if (sub.days) {
+                const days = Number(sub.days);
+                if (days > 5) marks = 5;
+                else if (days >= 2) marks = 3;
+            } else {
+                marks = Number(sub.marks) || 0;
+            }
+            if (sub.cayGroup === 'CAYm1') counts.caym1 = Math.min(5, counts.caym1 + marks);
+            else if (sub.cayGroup === 'CAYm2') counts.caym2 = Math.min(5, counts.caym2 + marks);
+            else if (sub.cayGroup === 'CAYm3') counts.caym3 = Math.min(5, counts.caym3 + marks);
         });
 
         return (
-            <table className="min-w-full divide-y divide-slate-200 text-[1.15rem]">
+            <table className="min-w-full divide-y divide-slate-200 text-[1.18rem]">
                 <thead className="bg-gradient-to-r from-yellow-50 to-slate-100 text-slate-700">
                     <tr>
-                        <th rowSpan="2" className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-r border-slate-200/60 border-b border-slate-200">S.N.</th>
-                        <th rowSpan="2" className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-r border-slate-200/60 border-b border-slate-200">Name of the Faculty as Resource Person or Participant</th>
-                        <th colSpan="3" className="px-8 py-5 text-center text-lg font-bold uppercase tracking-wider border-b border-slate-200">Max. 5 per Faculty</th>
+                        <th rowSpan="2" className="px-6 py-5 text-left font-bold uppercase tracking-wider border-r border-slate-200/60 border-b border-slate-200 text-base">S.N.</th>
+                        <th rowSpan="2" className="px-6 py-5 text-left font-bold uppercase tracking-wider border-r border-slate-200/60 border-b border-slate-200 text-base">Name of the Faculty as Resource Person or Participant</th>
+                        <th colSpan="3" className="px-6 py-4 text-center font-bold uppercase tracking-wider border-b border-slate-200 text-base">Max. 5 per Faculty</th>
                     </tr>
                     <tr>
-                        <th className="px-8 py-4 text-center text-base font-bold uppercase tracking-wider bg-white/30 border-r border-slate-200/60 border-b border-slate-200 backdrop-blur-sm">CAYm1</th>
-                        <th className="px-8 py-4 text-center text-base font-bold uppercase tracking-wider bg-white/30 border-r border-slate-200/60 border-b border-slate-200 backdrop-blur-sm">CAYm2</th>
-                        <th className="px-8 py-4 text-center text-base font-bold uppercase tracking-wider bg-white/30 border-b border-slate-200 backdrop-blur-sm">CAYm3</th>
+                        <th className="px-6 py-3 text-center font-bold uppercase tracking-wider bg-white/30 border-r border-slate-200/60 border-b border-slate-200 backdrop-blur-sm text-base">CAYm1</th>
+                        <th className="px-6 py-3 text-center font-bold uppercase tracking-wider bg-white/30 border-r border-slate-200/60 border-b border-slate-200 backdrop-blur-sm text-base">CAYm2</th>
+                        <th className="px-6 py-3 text-center font-bold uppercase tracking-wider bg-white/30 border-b border-slate-200 backdrop-blur-sm text-base">CAYm3</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
                     {loading ? (
-                        <tr><td colSpan="5" className="px-8 py-10 text-center text-slate-500 text-xl">Loading...</td></tr>
+                        <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500 text-lg">Loading...</td></tr>
                     ) : submissions.length === 0 ? (
-                        <tr><td colSpan="5" className="px-8 py-10 text-center text-slate-500 text-xl">No submissions found.</td></tr>
+                        <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500 text-lg">No submissions found.</td></tr>
                     ) : (
                         Array.from(facultyMap.entries()).map(([facultyName, counts], idx) => (
                             <tr key={idx} className="hover:bg-yellow-50/30 transition-colors duration-200">
-                                <td className="px-8 py-5 whitespace-nowrap text-lg text-slate-700 border-r border-slate-100">{idx + 1}</td>
-                                <td className="px-8 py-5 whitespace-nowrap text-lg text-slate-700 border-r border-slate-100 font-semibold">{facultyName}</td>
-                                <td className="px-8 py-5 whitespace-nowrap text-lg text-center text-slate-700 border-r border-slate-100">{counts.caym1 || '-'}</td>
-                                <td className="px-8 py-5 whitespace-nowrap text-lg text-center text-slate-700 border-r border-slate-100">{counts.caym2 || '-'}</td>
-                                <td className="px-8 py-5 whitespace-nowrap text-lg text-center text-slate-700">{counts.caym3 || '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-lg text-slate-700 border-r border-slate-100">{idx + 1}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-lg text-slate-900 border-r border-slate-100 font-semibold">{facultyName}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-lg text-center text-slate-700 border-r border-slate-100">{counts.caym1 || '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-lg text-center text-slate-700 border-r border-slate-100">{counts.caym2 || '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-lg text-center text-slate-700">{counts.caym3 || '-'}</td>
                             </tr>
                         ))
                     )}
@@ -289,42 +325,43 @@ const SubmissionTable = ({ user, onLogout }) => {
                     <div className="overflow-x-auto">
                         {categoryId === '6.1.2.1.1' ? renderCAYGroupedTable() :
                             categoryId === '6.1.2.2.1' ? renderCAYColumnTable() : (
-                                <table className="min-w-full divide-y divide-slate-200 text-[1.15rem]">
+                                <table className="min-w-full divide-y divide-slate-200">
                                     <thead className="bg-gradient-to-r from-yellow-50 to-slate-100 text-slate-700">
                                         <tr>
                                             {columns.map((col) => (
-                                                <th key={col.key} className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider border-b border-slate-200">
+                                                <th key={col.key} className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider border-b border-slate-200">
                                                     {col.label}
                                                 </th>
                                             ))}
-                                            <th className="px-8 py-6 text-right text-lg font-bold uppercase tracking-wider border-b border-slate-200">Proof</th>
+                                            <th className="px-6 py-5 text-right text-sm font-bold uppercase tracking-wider border-b border-slate-200">Proof</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-slate-100">
                                         {loading ? (
                                             <tr>
-                                                <td colSpan={columns.length + 1} className="px-8 py-10 text-center text-slate-500 text-xl">Loading submissions...</td>
+                                                <td colSpan={columns.length + 1} className="px-6 py-8 text-center text-slate-500 text-lg">Loading submissions...</td>
                                             </tr>
                                         ) : submissions.length === 0 ? (
                                             <tr>
-                                                <td colSpan={columns.length + 1} className="px-8 py-10 text-center text-slate-500 text-xl">No submissions found.</td>
+                                                <td colSpan={columns.length + 1} className="px-6 py-8 text-center text-slate-500 text-lg">No submissions found.</td>
                                             </tr>
                                         ) : (
                                             submissions.map((sub, idx) => (
                                                 <tr key={sub.id} className="hover:bg-yellow-50/30 transition-colors duration-200">
                                                     {columns.map((col) => (
-                                                        <td key={col.key} className="px-8 py-5 whitespace-nowrap text-lg text-slate-700">
+                                                        <td key={col.key} className="px-6 py-4 whitespace-nowrap text-base text-slate-600">
                                                             {col.render(sub, idx)}
                                                         </td>
                                                     ))}
-                                                    <td className="px-8 py-5 whitespace-nowrap text-right font-semibold">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
                                                         <a
                                                             href={sub.docUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-block px-5 py-2 rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-base font-bold transition-colors"
+                                                            className="inline-block px-4 py-1.5 rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-xs font-bold transition-colors"
+                                                            download
                                                         >
-                                                            View Certificate
+                                                            Download Proof
                                                         </a>
                                                     </td>
                                                 </tr>
