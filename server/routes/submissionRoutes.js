@@ -199,4 +199,36 @@ router.post("/submit", upload.single("file"), async (req, res) => {
   }
 });
 
+
+/* ------------------------
+   DELETE SUBMISSION
+------------------------- */
+router.delete("/:code/:id", async (req, res) => {
+  try {
+    const { code, id } = req.params;
+    const userId = req.user.id;
+    let tableName = "";
+
+    if (code === "6.1.1.1") tableName = "prof_memberships";
+    else if (code === "6.1.2.1.1") tableName = "resource_person";
+    else if (code === "6.1.2.2.1") tableName = "fdp";
+    else if (code === "6.1.4.1") tableName = "mooc_course";
+    else return res.status(400).json({ error: "Invalid section code" });
+
+    const result = await db.query(
+      `DELETE FROM ${tableName} WHERE id=$1 AND faculty_id=$2 RETURNING *`,
+      [id, userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Submission not found or unauthorized" });
+    }
+
+    res.json({ message: "Deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

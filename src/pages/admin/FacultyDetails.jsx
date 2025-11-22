@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "../../adm_components/AdminLayout.jsx";
-import { getFacultyById, getFacultySubmissions } from "../../utils/adminClient.js";
+import { getFacultyById, getFacultySubmissions, deleteFaculty, deleteSubmission } from "../../utils/adminClient.js";
 
 const FacultyDetails = ({ user, onLogout }) => {
     const { facultyId } = useParams();
@@ -28,6 +28,31 @@ const FacultyDetails = ({ user, onLogout }) => {
         };
         fetchData();
     }, [facultyId]);
+
+    const handleDeleteFaculty = async () => {
+        if (window.confirm('Are you sure you want to delete this faculty? This action cannot be undone.')) {
+            try {
+                await deleteFaculty(facultyId);
+                alert("Faculty deleted successfully");
+                navigate("/admin/faculty");
+            } catch (err) {
+                console.error(err);
+                alert("Failed to delete faculty");
+            }
+        }
+    };
+
+    const handleDeleteSubmission = async (code, id) => {
+        if (window.confirm('Are you sure you want to delete this submission?')) {
+            try {
+                await deleteSubmission(code, id);
+                setSubmissions(prev => prev.filter(s => s.id !== id));
+            } catch (err) {
+                console.error(err);
+                alert("Failed to delete submission");
+            }
+        }
+    };
 
     const handleExport = () => {
         // Simple CSV Export for this faculty's submissions
@@ -113,12 +138,7 @@ const FacultyDetails = ({ user, onLogout }) => {
                         </div>
                         <div className="flex-1 flex justify-end">
                             <button
-                                onClick={() => {
-                                    if (window.confirm('Are you sure you want to delete this faculty? This action cannot be undone.')) {
-                                        // Call backend delete endpoint here
-                                        // Example: deleteFaculty(facultyId)
-                                    }
-                                }}
+                                onClick={handleDeleteFaculty}
                                 className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold shadow-sm text-lg"
                             >
                                 Delete Faculty
@@ -176,12 +196,7 @@ const FacultyDetails = ({ user, onLogout }) => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-lg font-medium">
                                                     <button
-                                                        onClick={() => {
-                                                            if (window.confirm('Are you sure you want to delete this submission?')) {
-                                                                // Call backend delete endpoint here
-                                                                // Example: deleteSubmission(sub.id)
-                                                            }
-                                                        }}
+                                                        onClick={() => handleDeleteSubmission(sub.category, sub.id)}
                                                         className="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-semibold"
                                                     >
                                                         Delete

@@ -71,6 +71,37 @@ router.get("/submissions/:id", async (req, res) => {
   }
 });
 
+// Delete Faculty
+router.delete("/faculty/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query("DELETE FROM users WHERE id=$1 AND role='faculty'", [id]);
+    res.json({ message: "Faculty deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting faculty:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Delete Submission (Admin Override)
+router.delete("/submission/:code/:id", async (req, res) => {
+  try {
+    const { code, id } = req.params;
+    let table = "";
+    if (code === "6.1.1.1") table = "prof_memberships";
+    else if (code === "6.1.2.1.1") table = "resource_person";
+    else if (code === "6.1.2.2.1") table = "fdp";
+    else if (code === "6.1.4.1") table = "mooc_course";
+    else return res.status(400).json({ error: "Invalid section code" });
+
+    await db.query(`DELETE FROM ${table} WHERE id=$1`, [id]);
+    res.json({ message: "Deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting submission:", err);
+    res.status(500).json({ error: "Failed to delete submission" });
+  }
+});
+
 router.get("/all-faculty", async (req, res) => {
   try {
     const result = await db.query(
@@ -234,5 +265,34 @@ JOIN users u ON c.faculty_id = u.id;`
   }
 });
 
+
+
+// Analytics Endpoint
+router.get("/analytics", async (req, res) => {
+  try {
+    const [facultyCount, memberships, resource, fdp, moocs] = await Promise.all([
+      db.query("SELECT COUNT(*) FROM users WHERE role='faculty'"),
+      db.query("SELECT COUNT(*) FROM prof_memberships"),
+      db.query("SELECT COUNT(*) FROM resource_person"),
+      db.query("SELECT COUNT(*) FROM fdp"),
+      db.query("SELECT COUNT(*) FROM mooc_course")
+    ]);
+
+    const stats = {
+      totalFaculty: parseInt(facultyCount.rows[0].count, 10),
+      submissionCounts: [
+        { name: "Memberships", count: parseInt(memberships.rows[0].count, 10) },
+        { name: "Resource Person", count: parseInt(resource.rows[0].count, 10) },
+        { name: "FDPs", count: parseInt(fdp.rows[0].count, 10) },
+        { name: "MOOCs", count: parseInt(moocs.rows[0].count, 10) }
+      ]
+    };
+
+    res.json(stats);
+  } catch (err) {
+    console.error("Error in /analytics:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 export default router;

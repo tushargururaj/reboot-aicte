@@ -120,3 +120,33 @@ export const getAllSubmissions = async () => {
     console.warn("getAllSubmissions is deprecated. Use getCategoryReport(sectionCode).");
     return [];
 };
+
+// Delete Faculty
+export const deleteFaculty = async (id) => {
+    const res = await fetch(`${API_BASE}/faculty/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+    if (!res.ok) throw new Error("Failed to delete faculty");
+    return await res.json();
+};
+
+// Delete Submission
+export const deleteSubmission = async (code, id) => {
+    const res = await fetch(`${API_BASE}/submission/${code}/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+    if (!res.ok) throw new Error("Failed to delete submission");
+    return await res.json();
+};
+
+// Get System Analytics
+export const getSystemAnalytics = async () => {
+    try {
+        return await fetchJson(`${API_BASE}/analytics`);
+    } catch (err) {
+        console.error("Error fetching analytics:", err);
+        return null;
+    }
+};

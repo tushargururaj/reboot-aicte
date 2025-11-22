@@ -25,6 +25,7 @@ import FacultyList from "./pages/admin/FacultyList.jsx";
 import FacultyDetails from "./pages/admin/FacultyDetails.jsx";
 import SubmissionCategories from "./pages/admin/SubmissionCategories.jsx";
 import SubmissionTable from "./pages/admin/SubmissionTable.jsx";
+import ReportsAnalytics from "./pages/admin/ReportsAnalytics.jsx";
 
 
 // Auth page for login/signup toggle
@@ -171,7 +172,7 @@ const App = () => {
       <Route path="/admin/profile" element={<AdminRouteWrapper><AdminProfile user={user} onLogout={handleLogout} /></AdminRouteWrapper>} />
 
       {/* ADMIN Placeholders */}
-      <Route path="/admin/reports" element={<AdminRouteWrapper><AdminSimplePage user={user} onLogout={handleLogout} title="Reports & Analytics" message="System-wide insights and data export tools coming soon." activeKey="reports" /></AdminRouteWrapper>} />
+      <Route path="/admin/reports" element={<AdminRouteWrapper><ReportsAnalytics user={user} onLogout={handleLogout} /></AdminRouteWrapper>} />
       <Route path="/admin/events" element={<AdminRouteWrapper><AdminSimplePage user={user} onLogout={handleLogout} title="Event Management" message="Tools to manage FDPs, STTPs, and deadlines." activeKey="event-management" /></AdminRouteWrapper>} />
       <Route path="/admin/system" element={<AdminRouteWrapper><AdminSimplePage user={user} onLogout={handleLogout} title="System Utilities" message="Tools for database status and system maintenance." activeKey="system-utilities" /></AdminRouteWrapper>} />
 

@@ -60,6 +60,24 @@ const MySubmissions = ({ user, onLogout }) => {
 
   const statusOptions = ["All", "Rejected", "Submitted"];
 
+  const handleDelete = async (code, id) => {
+    if (!window.confirm("Are you sure you want to delete this submission?")) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/submissions/${code}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete");
+
+      setSubmissions((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting submission");
+    }
+  };
+
   return (
     <div
       className="min-h-screen flex"
@@ -152,6 +170,12 @@ const MySubmissions = ({ user, onLogout }) => {
                             disabled={!submission.file}
                           >
                             Download
+                          </button>
+                          <button
+                            onClick={() => handleDelete(submission.code, submission.id)}
+                            className="ml-6 text-red-500 hover:text-red-700 transition"
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>
