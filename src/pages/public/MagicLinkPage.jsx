@@ -34,10 +34,15 @@ const MagicLinkPage = () => {
 
     const handleCustomSubmit = async (formData) => {
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
             const res = await fetch("/api/public/submit-magic", {
                 method: "POST",
                 body: formData, // FormData handles file uploads automatically
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Submission failed");
@@ -46,7 +51,11 @@ const MagicLinkPage = () => {
             return { success: true };
         } catch (err) {
             console.error(err);
-            return { success: false, message: err.message };
+            let errorMessage = err.message;
+            if (err.name === 'AbortError') {
+                errorMessage = "Request timed out. Please check your connection.";
+            }
+            return { success: false, message: errorMessage };
         }
     };
 
