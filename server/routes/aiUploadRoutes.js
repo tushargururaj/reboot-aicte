@@ -13,12 +13,19 @@ const router = Router();
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = 'uploads/certificates';
+        // Use /tmp for Vercel serverless (only writable directory on Vercel)
+        // Falls back to process.cwd()/tmp for local development
+        const uploadDir = process.env.VERCEL ? '/tmp/certificates' : path.join(process.cwd(), 'tmp', 'certificates');
         // Create directory if it doesn't exist
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
+        try {
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            cb(null, uploadDir);
+        } catch (error) {
+            console.error('Error creating upload directory:', error);
+            cb(error);
         }
-        cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -139,7 +146,7 @@ router.post('/process', (req, res, next) => {
 
             // Download to temp file for processing
             const ext = path.extname(req.body.gcsPath);
-            const tempDir = path.join(os.tmpdir(), 'uploads/temp');
+            const tempDir = process.env.VERCEL ? '/tmp/uploads/temp' : path.join(os.tmpdir(), 'uploads/temp');
             if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
             tempFilePath = path.join(tempDir, `temp-${Date.now()}${ext}`);

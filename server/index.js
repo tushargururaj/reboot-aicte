@@ -8,7 +8,7 @@ import path from 'path';
 import submissionRoutes from './routes/submissionRoutes.js';
 import jwtAuthMiddleware from './middleware/jwtAuthmiddleware.js';
 import adminRoutes from './routes/adminRoutes.js';
-import aiUploadRoutes from './routes/aiUpload.routes.js';
+import aiUploadRoutes from './routes/aiUploadRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
 import cors from "cors";

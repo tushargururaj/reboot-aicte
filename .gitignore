@@ -26,6 +26,7 @@ dist-ssr
 server/uploads
 # Ignore uploaded proof files stored by multer
 uploads/
+tmp/
 /uploads
 
 # Google Cloud credentials (NEVER commit these!)
