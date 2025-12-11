@@ -140,127 +140,141 @@ router.post('/process', (req, res, next) => {
 
     try {
         // Handle GCS Direct Upload
-        // Set cleanup to delete local temp file
-        cleanupCallback = () => {
-            if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
-        };
+        if (req.body.gcsPath) {
+            console.log('Processing GCS file:', req.body.gcsPath);
+            const gcsFile = bucket.file(req.body.gcsPath);
 
-        // Mock req.file structure for downstream logic
-        req.file = {
-            originalname: path.basename(req.body.gcsPath),
-            path: tempFilePath,
-            mimetype: 'application/octet-stream', // We might not know exact type, but OCR handles it
-            size: (await fs.promises.stat(tempFilePath)).size
-        };
-    }
+            // Download to temp file for processing
+            const ext = path.extname(req.body.gcsPath);
+            const tempDir = path.join(os.tmpdir(), 'uploads/temp');
+            if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+
+            tempFilePath = path.join(tempDir, `temp-${Date.now()}${ext}`);
+
+            console.log('Downloading from GCS to:', tempFilePath);
+            await gcsFile.download({ destination: tempFilePath });
+
+            // Set cleanup to delete local temp file
+            cleanupCallback = () => {
+                if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+            };
+
+            // Mock req.file structure for downstream logic
+            req.file = {
+                originalname: path.basename(req.body.gcsPath),
+                path: tempFilePath,
+                mimetype: 'application/octet-stream', // We might not know exact type, but OCR handles it
+                size: (await fs.promises.stat(tempFilePath)).size
+            };
+        }
         // Handle Multer Upload (Legacy/Fallback)
         else if (req.file) {
-        tempFilePath = req.file.path;
-        cleanupCallback = () => {
-            if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+            tempFilePath = req.file.path;
+            cleanupCallback = () => {
+                if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+            };
+        } else {
+            return res.status(400).json({
+                success: false,
+                error: 'No file uploaded',
+                hint: 'Please select a file to upload.'
+            });
+        }
+
+        console.log('Processing certificate:', req.file.originalname);
+
+        // Step 1: Extract text using Tesseract OCR or PDF Parser
+        console.log('Step 1: Running OCR/PDF Extraction...');
+        const processingResult = await processCertificateFile(req.file.path);
+
+        if (!processingResult.success) {
+            const errorMessage = processingResult.error.includes('extract text')
+                ? 'Text extraction failed'
+                : 'Could not process file';
+
+            throw new Error(errorMessage + ': ' + processingResult.error);
+        }
+
+        const ocrText = processingResult.text;
+
+        if (!ocrText || ocrText.trim().length < 10) {
+            // ... (existing empty text logic) ...
+            const isPdf = req.file.originalname.toLowerCase().endsWith('.pdf');
+            const hint = isPdf
+                ? 'This PDF appears to be scanned or empty. Please verify it works, or try uploading a screenshot (PNG/JPG) of it instead.'
+                : 'The image was too blurry or contained no readable text. Please try a clearer image.';
+
+            return res.status(400).json({
+                success: false,
+                error: 'Could not extract sufficient text from the file.',
+                hint: hint
+            });
+        }
+
+        console.log('OCR extracted', ocrText.length, 'characters');
+
+        // Step 2: Use AI to analyze content
+        console.log('Step 2: Analyzing content with AI...');
+        const aiResult = await analyzeCertificateWithAI(ocrText);
+
+        // Step 3: Prepare response
+        const response = {
+            success: true,
+            isRecognized: aiResult.isRecognized,
+            detectedType: aiResult.detectedType,
+            typeConfidence: aiResult.typeConfidence,
+            reason: aiResult.reason,
+            certificateType: aiResult.tableDisplayName,
+            tableName: aiResult.tableName,
+            sectionCode: aiResult.sectionCode,
+            extracted: aiResult.extractedFields,
+            fieldConfidence: aiResult.fieldConfidence,
+            overallConfidence: aiResult.overallConfidence,
+            missingRequired: aiResult.missingRequired || [],
+            ocrTextLength: ocrText.length,
+            filename: req.file.originalname,
+            filePath: req.body.gcsPath || req.file.path, // Return GCS path if available, else local
+            supportedTypes: getSupportedTypes()
         };
-    } else {
-        return res.status(400).json({
+
+        if (!aiResult.isRecognized) {
+            response.warning = 'Document type could not be confidently identified. Please review and select the correct type.';
+        }
+
+        console.log('Processing complete!');
+        console.log('  - Detected Type:', aiResult.detectedType);
+
+        // Cleanup temp file immediately if it was a GCS download
+        if (req.body.gcsPath && cleanupCallback) {
+            cleanupCallback();
+        }
+        // For local uploads, we might keep it for a bit or rely on the timeout (existing logic)
+        // But to be safe and consistent, let's rely on the existing timeout logic for local files
+        // OR just clean up now if we decide we don't need it locally anymore.
+        // The confirm endpoint needs the file. 
+        // If GCS, confirm endpoint should use GCS path.
+        // If Local, confirm endpoint uses local path.
+
+        // NOTE: The confirm endpoint logic needs to be checked. 
+        // If we use GCS, the file is already in GCS. Confirm just needs to know that.
+        // If we downloaded to temp, we deleted it. 
+        // Wait, if confirm needs the file, we shouldn't delete it?
+        // Actually, for GCS flow, the file is PERMANENTLY in GCS (well, in the bucket).
+        // So we don't need the local temp file for confirm. 
+        // We just pass the gcsPath to confirm.
+
+        res.json(response);
+
+    } catch (error) {
+        console.error('Processing error:', error);
+        if (cleanupCallback) cleanupCallback();
+
+        res.status(500).json({
             success: false,
-            error: 'No file uploaded',
-            hint: 'Please select a file to upload.'
+            error: 'Server encountered a problem',
+            hint: 'Please try again later or upload a different file.'
         });
     }
-
-    console.log('Processing certificate:', req.file.originalname);
-
-    // Step 1: Extract text using Tesseract OCR or PDF Parser
-    console.log('Step 1: Running OCR/PDF Extraction...');
-    const processingResult = await processCertificateFile(req.file.path);
-
-    if (!processingResult.success) {
-        const errorMessage = processingResult.error.includes('extract text')
-            ? 'Text extraction failed'
-            : 'Could not process file';
-
-        throw new Error(errorMessage + ': ' + processingResult.error);
-    }
-
-    const ocrText = processingResult.text;
-
-    if (!ocrText || ocrText.trim().length < 10) {
-        // ... (existing empty text logic) ...
-        const isPdf = req.file.originalname.toLowerCase().endsWith('.pdf');
-        const hint = isPdf
-            ? 'This PDF appears to be scanned or empty. Please verify it works, or try uploading a screenshot (PNG/JPG) of it instead.'
-            : 'The image was too blurry or contained no readable text. Please try a clearer image.';
-
-        return res.status(400).json({
-            success: false,
-            error: 'Could not extract sufficient text from the file.',
-            hint: hint
-        });
-    }
-
-    console.log('OCR extracted', ocrText.length, 'characters');
-
-    // Step 2: Use AI to analyze content
-    console.log('Step 2: Analyzing content with AI...');
-    const aiResult = await analyzeCertificateWithAI(ocrText);
-
-    // Step 3: Prepare response
-    const response = {
-        success: true,
-        isRecognized: aiResult.isRecognized,
-        detectedType: aiResult.detectedType,
-        typeConfidence: aiResult.typeConfidence,
-        reason: aiResult.reason,
-        certificateType: aiResult.tableDisplayName,
-        tableName: aiResult.tableName,
-        sectionCode: aiResult.sectionCode,
-        extracted: aiResult.extractedFields,
-        fieldConfidence: aiResult.fieldConfidence,
-        overallConfidence: aiResult.overallConfidence,
-        missingRequired: aiResult.missingRequired || [],
-        ocrTextLength: ocrText.length,
-        filename: req.file.originalname,
-        filePath: req.body.gcsPath || req.file.path, // Return GCS path if available, else local
-        supportedTypes: getSupportedTypes()
-    };
-
-    if (!aiResult.isRecognized) {
-        response.warning = 'Document type could not be confidently identified. Please review and select the correct type.';
-    }
-
-    console.log('Processing complete!');
-    console.log('  - Detected Type:', aiResult.detectedType);
-
-    // Cleanup temp file immediately if it was a GCS download
-    if (req.body.gcsPath && cleanupCallback) {
-        cleanupCallback();
-    }
-    // For local uploads, we might keep it for a bit or rely on the timeout (existing logic)
-    // But to be safe and consistent, let's rely on the existing timeout logic for local files
-    // OR just clean up now if we decide we don't need it locally anymore.
-    // The confirm endpoint needs the file. 
-    // If GCS, confirm endpoint should use GCS path.
-    // If Local, confirm endpoint uses local path.
-
-    // NOTE: The confirm endpoint logic needs to be checked. 
-    // If we use GCS, the file is already in GCS. Confirm just needs to know that.
-    // If we downloaded to temp, we deleted it. 
-    // Wait, if confirm needs the file, we shouldn't delete it?
-    // Actually, for GCS flow, the file is PERMANENTLY in GCS (well, in the bucket).
-    // So we don't need the local temp file for confirm. 
-    // We just pass the gcsPath to confirm.
-
-    res.json(response);
-
-} catch (error) {
-    console.error('Processing error:', error);
-    if (cleanupCallback) cleanupCallback();
-
-    res.status(500).json({
-        success: false,
-        error: 'Server encountered a problem',
-        hint: 'Please try again later or upload a different file.'
-    });
-}
 });
 
 /**
