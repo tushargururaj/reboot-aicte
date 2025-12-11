@@ -54,7 +54,7 @@ const Profile = ({ user, onLogout }) => {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/profile", {
+      const res = await axios.get("/api/profile", {
         withCredentials: true,
       });
       setProfileData(res.data);
@@ -72,14 +72,14 @@ const Profile = ({ user, onLogout }) => {
       if (imageFile) {
         const formData = new FormData();
         formData.append("image", imageFile);
-        await axios.post("http://localhost:3000/profile/image", formData, {
+        await axios.post("/api/profile/image", formData, {
           withCredentials: true,
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
       // 2. Update profile details
-      await axios.put("http://localhost:3000/profile", profileData, {
+      await axios.put("/api/profile", profileData, {
         withCredentials: true,
       });
 
@@ -147,7 +147,7 @@ const Profile = ({ user, onLogout }) => {
                 <div className="w-24 h-24 rounded-full bg-indigo-200 flex items-center justify-center text-3xl font-bold text-indigo-800 shadow-inner overflow-hidden">
                   {profileData.profileImage && !profileData.profileImage.startsWith("blob:") ? (
                     <img
-                      src={`http://localhost:3000/profile/image/${profileData.profileImage}`}
+                      src={`/api/profile/image/${profileData.profileImage}`}
                       alt="Profile"
                       className="w-full h-full object-cover"
                       onError={(e) => { e.target.onerror = null; e.target.src = "" }} // Fallback if load fails

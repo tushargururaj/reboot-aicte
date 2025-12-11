@@ -75,7 +75,7 @@ const App = () => {
 
     const checkSession = async () => {
       try {
-        const res = await fetch("http://localhost:3000/auth/me", { credentials: "include" });
+        const res = await fetch("/api/auth/me", { credentials: "include" });
 
         console.log("Response status from /me:", res.status);
 
@@ -107,7 +107,7 @@ const App = () => {
   // 3. Logout
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:3000/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     } catch (e) {
       console.warn("Logout fetch failed (likely network error), proceeding with local logout.");
     } finally {
