@@ -55,103 +55,226 @@ router.get('/upload-url', async (req, res) => {
         const { filename, contentType } = req.query;
 
         if (!filename || !contentType) {
-        });
+            return res.status(400).json({
+                success: false,
+                error: 'Missing filename or contentType'
+            });
         }
 
-console.log('Processing certificate:', req.file.originalname);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(filename);
+        const gcsFilename = `uploads/certificates/cert-${uniqueSuffix}${ext}`;
+        const file = bucket.file(gcsFilename);
 
-// Step 1: Extract text using Tesseract OCR or PDF Parser
-console.log('Step 1: Running OCR/PDF Extraction...');
-const processingResult = await processCertificateFile(req.file.path);
+        // Generate Signed URL
+        const [url] = await file.getSignedUrl({
+            version: 'v4',
+            action: 'write',
+            expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+            contentType: contentType,
+        });
 
-if (!processingResult.success) {
-    const errorMessage = processingResult.error.includes('extract text')
-        ? 'Text extraction failed'
-        : 'Could not process file';
-
-    throw new Error(errorMessage + ': ' + processingResult.error);
-}
-
-const ocrText = processingResult.text;
-
-if (!ocrText || ocrText.trim().length < 10) {
-    // ... (existing empty text logic) ...
-    const isPdf = req.file.originalname.toLowerCase().endsWith('.pdf');
-    const hint = isPdf
-        ? 'This PDF appears to be scanned or empty. Please verify it works, or try uploading a screenshot (PNG/JPG) of it instead.'
-        : 'The image was too blurry or contained no readable text. Please try a clearer image.';
-
-    return res.status(400).json({
-        success: false,
-        error: 'Could not extract sufficient text from the file.',
-        hint: hint
-    });
-}
-
-console.log('OCR extracted', ocrText.length, 'characters');
-
-// Step 2: Use AI to analyze content
-console.log('Step 2: Analyzing content with AI...');
-const aiResult = await analyzeCertificateWithAI(ocrText);
-
-// Step 3: Prepare response
-const response = {
-    success: true,
-    isRecognized: aiResult.isRecognized,
-    detectedType: aiResult.detectedType,
-    typeConfidence: aiResult.typeConfidence,
-    reason: aiResult.reason,
-    certificateType: aiResult.tableDisplayName,
-    tableName: aiResult.tableName,
-    sectionCode: aiResult.sectionCode,
-    extracted: aiResult.extractedFields,
-    fieldConfidence: aiResult.fieldConfidence,
-    overallConfidence: aiResult.overallConfidence,
-    missingRequired: aiResult.missingRequired || [],
-    ocrTextLength: ocrText.length,
-    filename: req.file.originalname,
-    filePath: req.body.gcsPath || req.file.path, // Return GCS path if available, else local
-    supportedTypes: getSupportedTypes()
-};
-
-if (!aiResult.isRecognized) {
-    response.warning = 'Document type could not be confidently identified. Please review and select the correct type.';
-}
-
-console.log('Processing complete!');
-console.log('  - Detected Type:', aiResult.detectedType);
-
-// Cleanup temp file immediately if it was a GCS download
-if (req.body.gcsPath && cleanupCallback) {
-    cleanupCallback();
-}
-// For local uploads, we might keep it for a bit or rely on the timeout (existing logic)
-// But to be safe and consistent, let's rely on the existing timeout logic for local files
-// OR just clean up now if we decide we don't need it locally anymore.
-// The confirm endpoint needs the file. 
-// If GCS, confirm endpoint should use GCS path.
-// If Local, confirm endpoint uses local path.
-
-// NOTE: The confirm endpoint logic needs to be checked. 
-// If we use GCS, the file is already in GCS. Confirm just needs to know that.
-// If we downloaded to temp, we deleted it. 
-// Wait, if confirm needs the file, we shouldn't delete it?
-// Actually, for GCS flow, the file is PERMANENTLY in GCS (well, in the bucket).
-// So we don't need the local temp file for confirm. 
-// We just pass the gcsPath to confirm.
-
-res.json(response);
+        res.json({
+            success: true,
+            uploadUrl: url,
+            gcsPath: gcsFilename,
+            filename: gcsFilename // Use this as the stored filename
+        });
 
     } catch (error) {
-    console.error('Processing error:', error);
-    if (cleanupCallback) cleanupCallback();
+        console.error('Signed URL error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to generate upload URL'
+        });
+    }
+});
 
-    res.status(500).json({
-        success: false,
-        error: 'Server encountered a problem',
-        hint: 'Please try again later or upload a different file.'
+/**
+ * POST /api/ai-upload/process
+ * Upload and process certificate with OCR + AI
+ * Supports both Multer (local/server upload) and GCS Direct Upload (gcsPath)
+ */
+const uploadMiddleware = upload.single('certificate');
+
+router.post('/process', (req, res, next) => {
+    // Check if this is a direct GCS processing request (JSON body)
+    if (req.is('application/json') || req.headers['content-type']?.includes('application/json')) {
+        return next();
+    }
+
+    // Otherwise, handle as Multer upload
+    uploadMiddleware(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({
+                    success: false,
+                    error: 'File is too large',
+                    hint: 'Please upload a file smaller than 50MB.'
+                });
+            }
+            return res.status(400).json({
+                success: false,
+                error: 'File upload error',
+                hint: err.message
+            });
+        } else if (err) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid file format',
+                hint: err.message
+            });
+        }
+        next();
     });
-}
+}, async (req, res) => {
+    let tempFilePath = null;
+    let cleanupCallback = null;
+
+    try {
+        // 1. Handle GCS Direct Upload (Preferred for large files)
+        if (req.body.gcsPath) {
+            console.log('Processing GCS file:', req.body.gcsPath);
+            const gcsFile = bucket.file(req.body.gcsPath);
+
+            // Download to temp file for processing
+            const ext = path.extname(req.body.gcsPath);
+            const tempDir = os.tmpdir();
+            tempFilePath = path.join(tempDir, `gcs-${Date.now()}${ext}`);
+
+            console.log('Downloading from GCS to:', tempFilePath);
+            await gcsFile.download({ destination: tempFilePath });
+
+            cleanupCallback = () => {
+                if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+            };
+
+            // Mock req.file
+            req.file = {
+                originalname: path.basename(req.body.gcsPath),
+                path: tempFilePath,
+                mimetype: 'application/octet-stream',
+                size: (await fs.promises.stat(tempFilePath)).size
+            };
+        }
+        // 2. Handle Multer Memory Upload (Fallback for small files)
+        else if (req.file) {
+            console.log('Processing Multer file (Memory):', req.file.originalname);
+            const ext = path.extname(req.file.originalname);
+            const tempDir = os.tmpdir();
+            tempFilePath = path.join(tempDir, `upload-${Date.now()}${ext}`);
+
+            // Write buffer to temp file
+            fs.writeFileSync(tempFilePath, req.file.buffer);
+
+            cleanupCallback = () => {
+                if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+            };
+
+            // Update req.file.path to point to the temp file
+            req.file.path = tempFilePath;
+        } else {
+            return res.status(400).json({
+                success: false,
+                error: 'No file uploaded',
+                hint: 'Please select a file to upload.'
+            });
+        }
+
+        console.log('Processing certificate:', req.file.originalname);
+
+        // Step 1: Extract text using Tesseract OCR or PDF Parser
+        console.log('Step 1: Running OCR/PDF Extraction...');
+        const processingResult = await processCertificateFile(req.file.path);
+
+        if (!processingResult.success) {
+            const errorMessage = processingResult.error.includes('extract text')
+                ? 'Text extraction failed'
+                : 'Could not process file';
+
+            throw new Error(errorMessage + ': ' + processingResult.error);
+        }
+
+        const ocrText = processingResult.text;
+
+        if (!ocrText || ocrText.trim().length < 10) {
+            // ... (existing empty text logic) ...
+            const isPdf = req.file.originalname.toLowerCase().endsWith('.pdf');
+            const hint = isPdf
+                ? 'This PDF appears to be scanned or empty. Please verify it works, or try uploading a screenshot (PNG/JPG) of it instead.'
+                : 'The image was too blurry or contained no readable text. Please try a clearer image.';
+
+            return res.status(400).json({
+                success: false,
+                error: 'Could not extract sufficient text from the file.',
+                hint: hint
+            });
+        }
+
+        console.log('OCR extracted', ocrText.length, 'characters');
+
+        // Step 2: Use AI to analyze content
+        console.log('Step 2: Analyzing content with AI...');
+        const aiResult = await analyzeCertificateWithAI(ocrText);
+
+        // Step 3: Prepare response
+        const response = {
+            success: true,
+            isRecognized: aiResult.isRecognized,
+            detectedType: aiResult.detectedType,
+            typeConfidence: aiResult.typeConfidence,
+            reason: aiResult.reason,
+            certificateType: aiResult.tableDisplayName,
+            tableName: aiResult.tableName,
+            sectionCode: aiResult.sectionCode,
+            extracted: aiResult.extractedFields,
+            fieldConfidence: aiResult.fieldConfidence,
+            overallConfidence: aiResult.overallConfidence,
+            missingRequired: aiResult.missingRequired || [],
+            ocrTextLength: ocrText.length,
+            filename: req.file.originalname,
+            filePath: req.body.gcsPath || req.file.path, // Return GCS path if available, else local
+            supportedTypes: getSupportedTypes()
+        };
+
+        if (!aiResult.isRecognized) {
+            response.warning = 'Document type could not be confidently identified. Please review and select the correct type.';
+        }
+
+        console.log('Processing complete!');
+        console.log('  - Detected Type:', aiResult.detectedType);
+
+        // Cleanup temp file immediately if it was a GCS download
+        if (req.body.gcsPath && cleanupCallback) {
+            cleanupCallback();
+        }
+        // For local uploads, we might keep it for a bit or rely on the timeout (existing logic)
+        // But to be safe and consistent, let's rely on the existing timeout logic for local files
+        // OR just clean up now if we decide we don't need it locally anymore.
+        // The confirm endpoint needs the file. 
+        // If GCS, confirm endpoint should use GCS path.
+        // If Local, confirm endpoint uses local path.
+
+        // NOTE: The confirm endpoint logic needs to be checked. 
+        // If we use GCS, the file is already in GCS. Confirm just needs to know that.
+        // If we downloaded to temp, we deleted it. 
+        // Wait, if confirm needs the file, we shouldn't delete it?
+        // Actually, for GCS flow, the file is PERMANENTLY in GCS (well, in the bucket).
+        // So we don't need the local temp file for confirm. 
+        // We just pass the gcsPath to confirm.
+
+        res.json(response);
+
+    } catch (error) {
+        console.error('Processing error:', error);
+        if (cleanupCallback) cleanupCallback();
+
+        res.status(500).json({
+            success: false,
+            error: 'Server encountered a problem',
+            hint: 'Please try again later or upload a different file.'
+        });
+    }
 });
 
 /**
