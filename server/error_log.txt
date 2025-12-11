@@ -1,0 +1,2 @@
+[2025-12-11T04:07:59.406Z] Error: pdfParse is not a function
+    at file:///C:/Users/HARSH/Desktop/reboot-aicte/server/routes/aiUpload.routes.js:67:19

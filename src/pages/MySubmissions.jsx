@@ -26,7 +26,7 @@ const MySubmissions = ({ user, onLogout }) => {
       if (!user) return;
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:3000/submissions/mysubmissions", {
+        const response = await fetch("http://localhost:3000/api/submissions/mysubmissions", {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" }
@@ -64,7 +64,7 @@ const MySubmissions = ({ user, onLogout }) => {
     if (!window.confirm("Are you sure you want to delete this submission?")) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/submissions/${code}/${id}`, {
+      const response = await fetch(`http://localhost:3000/api/submissions/${code}/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -133,23 +133,43 @@ const MySubmissions = ({ user, onLogout }) => {
                 <table className="min-w-full divide-y divide-slate-200">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Contribution Title</th>
-                      <th className="px-6 py-4 hidden sm:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Section Code</th>
-                      <th className="px-6 py-4 hidden lg:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Date Submitted</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider w-16">S.No</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider max-w-xs">Contribution Title</th>
+                      <th className="px-6 py-4 hidden sm:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-4 hidden lg:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Date of Conduct</th>
+                      <th className="px-6 py-4 hidden md:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Year/Date</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Status</th>
                       <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600 uppercase tracking-wider">Action</th>
                     </tr>
                   </thead>
 
                   <tbody className="bg-white divide-y divide-slate-100">
-                    {filteredSubmissions.map((submission) => (
+                    {filteredSubmissions.map((submission, index) => (
                       <tr key={submission.id} className="hover:bg-indigo-50/50 transition">
-                        <td className="px-6 py-5 whitespace-nowrap text-base font-semibold text-slate-900">{submission.title}</td>
+                        {/* Serial Number */}
+                        <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-slate-500">{index + 1}</td>
+
+                        {/* Title with wrapping */}
+                        <td className="px-6 py-5 text-base font-semibold text-slate-900 max-w-xs break-words whitespace-normal">
+                          {submission.title}
+                        </td>
+
+                        {/* Section Code / Type */}
                         <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden sm:table-cell">{submission.code}</td>
-                        <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden lg:table-cell">{submission.date}</td>
+
+                        {/* Date of Conduct */}
+                        <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden lg:table-cell">
+                          {submission.date !== 'N/A' ? submission.date : '-'}
+                        </td>
+
+                        {/* Submission Year/Date (Proxy) */}
+                        <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden md:table-cell">
+                          {submission.academic_year || '-'}
+                        </td>
+
                         <td className="px-6 py-5 whitespace-nowrap text-base"><StatusBadge status={submission.status} /></td>
 
-                        {/* FIXED DOWNLOAD BUTTON */}
+                        {/* Actions */}
                         <td className="px-6 py-5 whitespace-nowrap text-right text-base font-semibold">
                           <button
                             onClick={() => {
@@ -161,7 +181,7 @@ const MySubmissions = ({ user, onLogout }) => {
                               if (!filePath) return;
 
                               window.location.href =
-                                `http://localhost:3000/submissions/file-by-path?p=${encodeURIComponent(filePath)}&name=${encodeURIComponent(fileName)}`;
+                                `http://localhost:3000/api/submissions/file-by-path?p=${encodeURIComponent(filePath)}&name=${encodeURIComponent(fileName)}`;
                             }}
                             className={`transition ${submission.file
                               ? "text-indigo-600 hover:text-indigo-900"

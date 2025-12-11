@@ -119,7 +119,7 @@ export async function flushSubmissionQueue() {
  */
 export async function submitSubmission({ userId, sectionCode, payload, file, retrying = false }) {
   // Absolute URL is safer than relative
-  const url = "http://localhost:3000/submissions/submit"; 
+  const url = "http://localhost:3000/api/submissions/submit"; 
 
   try {
     let res;

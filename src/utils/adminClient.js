@@ -1,6 +1,6 @@
 // src/utils/adminClient.js
 
-const API_BASE = "http://localhost:3000/admin";
+const API_BASE = "http://localhost:3000/api/admin";
 
 // Helper for fetch
 const fetchJson = async (url) => {
@@ -45,6 +45,7 @@ export const getFacultySubmissions = async (facultyId) => {
             title: sub.title,
             category: sub.code, // Use code as category
             date: sub.date,
+            academic_year: sub.academic_year, // Include academic year
             docUrl: sub.file
                 ? `${API_BASE}/download?p=${sub.file}&name=${encodeURIComponent(sub.file_name || "document")}`
                 : "#",
@@ -116,9 +117,25 @@ export const getCategoryReport = async (sectionCode) => {
 // We now use getCategoryReport per category.
 // If we need a "global" list, we'd have to fetch all categories, which is expensive.
 // For compatibility, we can return empty or throw.
+// Get all submissions for "Pending Review" dashboard
 export const getAllSubmissions = async () => {
-    console.warn("getAllSubmissions is deprecated. Use getCategoryReport(sectionCode).");
-    return [];
+    try {
+        const data = await fetchJson(`${API_BASE}/all-submissions`);
+        return data.map(sub => ({
+            id: sub.id,
+            faculty: sub.faculty_name,
+            title: sub.title,
+            code: sub.code,
+            date: sub.date === 'N/A' && sub.academic_year ? `AY ${sub.academic_year}` : sub.date,
+            status: sub.status,
+            docUrl: sub.proof_document
+                ? `${API_BASE}/download?p=${sub.proof_document}&name=${encodeURIComponent(sub.proof_filename || "document")}`
+                : "#"
+        }));
+    } catch (err) {
+        console.error("Error fetching all submissions:", err);
+        return [];
+    }
 };
 
 // Delete Faculty

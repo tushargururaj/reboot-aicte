@@ -7,6 +7,7 @@ import path from 'path';
 import submissionRoutes from './routes/submissionRoutes.js';
 import jwtAuthMiddleware from './middleware/jwtAuthmiddleware.js';
 import adminRoutes from './routes/adminRoutes.js';
+import aiUploadRoutes from './routes/aiUpload.routes.js';
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
@@ -44,9 +45,14 @@ app.get('/', async (req, res) => {
   res.send('Welcome to HelpHub! Your One Stop solutions to all your problems. :)');
 });
 
-app.use('/auth', authRoutes);
-app.use('/submissions', jwtAuthMiddleware, submissionRoutes);
-app.use('/admin', jwtAuthMiddleware, adminRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/submissions', jwtAuthMiddleware, submissionRoutes);
+app.use('/api/admin', jwtAuthMiddleware, adminRoutes);
+app.use('/api/ai-upload', jwtAuthMiddleware, aiUploadRoutes);
+// Public health check for AI upload
+app.get('/api/ai-upload-health', (req, res) => {
+  res.json({ status: 'ok', service: 'AI Upload', timestamp: new Date().toISOString() });
+});
 
 app.listen(PORT, () => {
   console.log(`Listening to API at port ${PORT}`);

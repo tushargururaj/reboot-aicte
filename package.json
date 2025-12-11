@@ -10,12 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.2",
     "cors": "^2.8.5",
+    "framer-motion": "^12.23.25",
+    "lucide-react": "^0.556.0",
+    "multer": "^2.0.2",
     "nodemon": "^3.1.11",
+    "pdfjs-dist": "^2.16.105",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-dropzone": "^14.3.8",
     "react-router-dom": "^7.9.6",
-    "recharts": "^3.4.1"
+    "recharts": "^3.4.1",
+    "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
