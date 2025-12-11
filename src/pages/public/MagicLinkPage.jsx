@@ -107,10 +107,13 @@ const MagicLinkPage = () => {
     // Render the appropriate form based on section code
     const renderForm = () => {
         const commonProps = {
-            customSubmitHandler: (formData) => {
-                // Append magic link specific data
-                formData.append("magicToken", token);
-                formData.append("facultyId", linkData.facultyId);
+            customSubmitHandler: (payload, file) => {
+                const formData = new FormData();
+                formData.append("token", token);
+                formData.append("payload", JSON.stringify(payload));
+                if (file) {
+                    formData.append("file", file);
+                }
                 return handleCustomSubmit(formData);
             },
             isMagicLink: true
