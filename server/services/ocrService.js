@@ -5,7 +5,20 @@ import path from 'path';
 
 // Import pdfjs-dist (ESM)
 // Note: We use the legacy build to support Node.js environment better
+// Import pdfjs-dist (ESM)
+// Note: We use the legacy build to support Node.js environment better
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { createRequire } from 'module';
+
+// Configure PDF.js worker for Node.js environment
+const require = createRequire(import.meta.url);
+try {
+    // Explicitly resolve the worker path to ensure Vercel bundles it
+    // and PDF.js can find it
+    pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+} catch (error) {
+    console.warn('Warning: Could not resolve pdf.worker.mjs:', error);
+}
 
 // Import Google Cloud Vision service
 import { extractTextWithVision, extractTextFromPDFWithVision } from './visionService.js';
