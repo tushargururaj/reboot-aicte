@@ -99,7 +99,12 @@ const AIUploadPage = ({ user, onLogout }) => {
 
         const file = acceptedFiles[0];
         setUploadedFile(file);
-        setFileUrl(URL.createObjectURL(file));
+
+        // Use Data URL to avoid Blob URL partitioning issues
+        const reader = new FileReader();
+        reader.onload = (e) => setFileUrl(e.target.result);
+        reader.readAsDataURL(file);
+
         setCurrentStep(1);
 
         // Add user message
