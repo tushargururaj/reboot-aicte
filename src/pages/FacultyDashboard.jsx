@@ -24,7 +24,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
     const loadSubmissionStats = async () => {
       try {
         setStatsLoading(true);
-        const res = await fetch("http://localhost:3000/api/submissions/mysubmissions", {
+        const res = await fetch("/api/submissions/mysubmissions", {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },

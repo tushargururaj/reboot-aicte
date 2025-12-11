@@ -27,6 +27,8 @@ import FacultyDetails from "./pages/admin/FacultyDetails.jsx";
 import SubmissionCategories from "./pages/admin/SubmissionCategories.jsx";
 import SubmissionTable from "./pages/admin/SubmissionTable.jsx";
 import ReportsAnalytics from "./pages/admin/ReportsAnalytics.jsx";
+import MagicLinkGenerator from "./pages/admin/MagicLinkGenerator.jsx";
+import MagicLinkPage from "./pages/public/MagicLinkPage.jsx";
 
 
 // Auth page for login/signup toggle
@@ -76,7 +78,7 @@ const App = () => {
 
     const checkSession = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" });
+        const res = await fetch("/api/auth/me", { credentials: "include" });
 
         console.log("Response status from /me:", res.status);
 
@@ -108,7 +110,7 @@ const App = () => {
   // 3. Logout
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:3000/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     } catch (e) {
       console.warn("Logout fetch failed (likely network error), proceeding with local logout.");
     } finally {
@@ -176,6 +178,10 @@ const App = () => {
       <Route path="/admin/reports" element={<AdminRouteWrapper><ReportsAnalytics user={user} onLogout={handleLogout} /></AdminRouteWrapper>} />
       <Route path="/admin/events" element={<AdminRouteWrapper><AdminSimplePage user={user} onLogout={handleLogout} title="Event Management" message="Tools to manage FDPs, STTPs, and deadlines." activeKey="event-management" /></AdminRouteWrapper>} />
       <Route path="/admin/system" element={<AdminRouteWrapper><AdminSimplePage user={user} onLogout={handleLogout} title="System Utilities" message="Tools for database status and system maintenance." activeKey="system-utilities" /></AdminRouteWrapper>} />
+      <Route path="/admin/magic-links" element={<AdminRouteWrapper><MagicLinkGenerator user={user} onLogout={handleLogout} /></AdminRouteWrapper>} />
+
+      {/* 🪄 PUBLIC MAGIC LINKS */}
+      <Route path="/portal/secure-entry/:token" element={<MagicLinkPage />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

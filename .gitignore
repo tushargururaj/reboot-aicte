@@ -32,3 +32,5 @@ uploads/
 **/google-credentials.json
 **/service-account*.json
 server/config/*-key.json
+server/config/service-account.json
+

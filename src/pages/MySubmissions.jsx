@@ -26,7 +26,7 @@ const MySubmissions = ({ user, onLogout }) => {
       if (!user) return;
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:3000/api/submissions/mysubmissions", {
+        const response = await fetch("/api/submissions/mysubmissions", {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" }
@@ -64,7 +64,7 @@ const MySubmissions = ({ user, onLogout }) => {
     if (!window.confirm("Are you sure you want to delete this submission?")) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/api/submissions/${code}/${id}`, {
+      const response = await fetch(`/api/submissions/${code}/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -181,7 +181,7 @@ const MySubmissions = ({ user, onLogout }) => {
                               if (!filePath) return;
 
                               window.location.href =
-                                `http://localhost:3000/api/submissions/file-by-path?p=${encodeURIComponent(filePath)}&name=${encodeURIComponent(fileName)}`;
+                                `/api/submissions/file-by-path?p=${encodeURIComponent(filePath)}&name=${encodeURIComponent(fileName)}`;
                             }}
                             className={`transition ${submission.file
                               ? "text-indigo-600 hover:text-indigo-900"

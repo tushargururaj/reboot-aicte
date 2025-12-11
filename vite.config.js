@@ -10,4 +10,6 @@ export default defineConfig({
       '/uploads': 'http://localhost:3000',
     }
   }
+    },
+  },
 })
