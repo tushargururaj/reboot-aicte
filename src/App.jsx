@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
@@ -87,7 +86,7 @@ const App = () => {
           setUser(data.user);
         } else {
           const errorText = await res.text();
-          console.error(`Session check failed with status ${res.status}. Response:`, errorText);
+          console.error(`Session check failed with status ${res.status}.Response: `, errorText);
           setUser(null);
         }
       } catch (e) {

@@ -118,61 +118,62 @@ export async function flushSubmissionQueue() {
  * Returns: server JSON (resolved on res.ok) or throws Error on network / server non-ok
  */
 export async function submitSubmission({ userId, sectionCode, payload, file, retrying = false }) {
-// Absolute URL is safer than relative
-const url = "/api/submissions/submit";
-
-try {
-    let res;
-    if (file) {
-        const fd = new FormData();
-        fd.append("userId", userId);
-        fd.append("sectionCode", sectionCode);
-        fd.append("payload", JSON.stringify(payload || {}));
-        fd.append("file", file, file.name);
-
-        res = await fetch(url, {
-            method: "POST",
-            credentials: "include",
-            body: fd,
-        });
-    } else {
-        res = await fetch(url, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId, sectionCode, payload }),
-        });
-    }
-
-    const contentType = res.headers.get("content-type") || "";
-    const isJson = contentType.includes("application/json");
-
-    const data = isJson 
-        ? await res.json() 
-        : { success: res.ok, statusText: res.statusText };
-
-    if (!res.ok) {
-        const msg = data?.message || data?.error || `Server responded ${res.status}`;
-        const err = new Error(msg);
-        err.status = res.status;
-        err.payload = data;
-        throw err;
-    }
-
-    return data;
-} catch (err) {
-    console.error("submitSubmission failed:", err);
-
-    if (file) throw err;
+    // Absolute URL is safer than relative
+    const url = "/api/submissions/submit";
 
     try {
-        enqueueSubmission({ userId, sectionCode, payloadObj: payload });
-        return { success: true, queued: true, message: "Saved to local queue (offline). Will retry later." };
-    } catch (qErr) {
-        console.error("Failed to enqueue submission:", qErr);
-        throw err;
+        let res;
+        if (file) {
+            const fd = new FormData();
+            fd.append("userId", userId);
+            fd.append("sectionCode", sectionCode);
+            fd.append("payload", JSON.stringify(payload || {}));
+            fd.append("file", file, file.name);
+
+            res = await fetch(url, {
+                method: "POST",
+                credentials: "include",
+                body: fd,
+            });
+        } else {
+            res = await fetch(url, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId, sectionCode, payload }),
+            });
+        }
+
+        const contentType = res.headers.get("content-type") || "";
+        const isJson = contentType.includes("application/json");
+
+        const data = isJson
+            ? await res.json()
+            : { success: res.ok, statusText: res.statusText };
+
+        if (!res.ok) {
+            const msg = data?.message || data?.error || `Server responded ${res.status}`;
+            const err = new Error(msg);
+            err.status = res.status;
+            err.payload = data;
+            throw err;
+        }
+
+        return data;
+    } catch (err) {
+        console.error("submitSubmission failed:", err);
+
+        if (file) throw err;
+
+        try {
+            enqueueSubmission({ userId, sectionCode, payloadObj: payload });
+            return { success: true, queued: true, message: "Saved to local queue (offline). Will retry later." };
+        } catch (qErr) {
+            console.error("Failed to enqueue submission:", qErr);
+            throw err;
+        }
     }
 }
 
