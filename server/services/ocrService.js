@@ -13,12 +13,13 @@ import { extractTextWithVision, extractTextFromPDFWithVision } from './visionSer
 /**
  * Extract text from image using Tesseract OCR (fallback)
  */
-async function extractTextFromImageTesseract(imagePath) {
+async function extractTextFromImageTesseract(imageSource) {
     try {
-        console.log('Starting Tesseract OCR for image:', imagePath);
+        const isBuffer = Buffer.isBuffer(imageSource);
+        console.log(`Starting Tesseract OCR for ${isBuffer ? 'Buffer' : 'image file'}:`, isBuffer ? 'In-Memory' : imageSource);
 
         const result = await Tesseract.recognize(
-            imagePath,
+            imageSource,
             'eng',
             {
                 logger: info => {
@@ -55,11 +56,17 @@ async function extractTextFromImageTesseract(imagePath) {
 /**
  * Extract text from PDF file using pdfjs-dist (fallback)
  */
-async function extractTextFromPDFFallback(pdfPath) {
+async function extractTextFromPDFFallback(pdfSource) {
     try {
-        console.log('Extracting text from PDF with pdfjs-dist:', pdfPath);
+        const isBuffer = Buffer.isBuffer(pdfSource);
+        console.log(`Extracting text from PDF with pdfjs-dist (${isBuffer ? 'Buffer' : 'File'}):`, isBuffer ? 'In-Memory' : pdfSource);
 
-        const dataBuffer = await fs.readFile(pdfPath);
+        let dataBuffer;
+        if (isBuffer) {
+            dataBuffer = pdfSource;
+        } else {
+            dataBuffer = await fs.readFile(pdfSource);
+        }
 
         // Load PDF document
         const loadingTask = pdfjsLib.getDocument(new Uint8Array(dataBuffer));

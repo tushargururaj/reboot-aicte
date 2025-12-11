@@ -4,9 +4,12 @@
 import vision from '@google-cloud/vision';
 import path from 'path';
 import fs from 'fs';
-
+import dotenv from 'dotenv';
+dotenv.config();
 // Set credentials path (local fallback)
+// Assuming running from root or server directory, try to find config/google-credentials.json
 const credentialsPath = path.join(process.cwd(), 'config', 'google-credentials.json');
+const serverCredentialsPath = path.join(process.cwd(), 'server', 'config', 'google-credentials.json');
 
 // Determine credentials source
 let clientConfig = {};
@@ -28,8 +31,17 @@ if (envCredentials) {
     clientConfig = { keyFilename: credentialsPath };
     credentialsSource = 'file';
     console.log('Using Google Cloud credentials from file:', credentialsPath);
+} else if (fs.existsSync(serverCredentialsPath)) {
+    // Fallback for when running from root but config is in server/config
+    clientConfig = { keyFilename: serverCredentialsPath };
+    credentialsSource = 'file';
+    console.log('Using Google Cloud credentials from file:', serverCredentialsPath);
 } else {
-    console.warn('WARNING: No Google Cloud credentials found (env or file). Vision API calls will fail.');
+    console.warn('WARNING: No Google Cloud credentials found.');
+    console.warn('  - Checked Env Vars: GOOGLE_CREDENTIALS');
+    console.warn('  - Checked Path 1:', credentialsPath);
+    console.warn('  - Checked Path 2:', serverCredentialsPath);
+    console.warn('  - CWD:', process.cwd());
 }
 
 // Create Vision client

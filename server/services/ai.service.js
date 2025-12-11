@@ -2,19 +2,20 @@
 import { VertexAI } from '@google-cloud/vertexai';
 import path from 'path';
 import fs from 'fs';
-
-// Initialize Vertex AI with service account
-const credentialsPath = path.join(process.cwd(), 'config', 'google-credentials.json');
-
+import dotenv from 'dotenv';
+dotenv.config();
 // Set the environment variable for Google Cloud authentication
 // This is the most reliable way to ensure the SDK uses the service account key
-process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
+
 
 // Read project ID from credentials
 let projectId = 'desmystify';
+let authOptions = {};
+
 try {
-  const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf-8'));
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
   projectId = credentials.project_id || 'desmystify';
+  authOptions = { credentials };
   console.log('Using Vertex AI with project:', projectId);
 } catch (error) {
   console.error('Error reading credentials:', error.message);
@@ -23,7 +24,8 @@ try {
 // Initialize Vertex AI
 const vertex_ai = new VertexAI({
   project: projectId,
-  location: 'us-central1'
+  location: 'us-central1',
+  googleAuthOptions: authOptions
 });
 
 /**
@@ -195,11 +197,8 @@ function delay(ms) {
  */
 async function callVertexAI(prompt) {
   const models = [
-    'gemini-1.5-pro-002',
-    'gemini-1.5-flash-002',
-    'gemini-2.0-flash-exp',
-    'gemini-1.5-pro',
-    'gemini-1.5-flash'
+
+    'gemini-2.5-pro'
   ];
 
   let lastError = null;
