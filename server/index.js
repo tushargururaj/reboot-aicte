@@ -29,22 +29,6 @@ app.use(
 
 // db is already connected in config/db.js
 
-app.use(bodyParser.json());
-
-app.get('/', async (req, res) => {
-  res.send('Welcome to HelpHub! Your One Stop solutions to all your problems. :)');
-});
-
-app.use('/auth', authRoutes);
-app.use('/submissions', jwtAuthMiddleware, submissionRoutes);
-app.use('/profile', jwtAuthMiddleware, profileRoutes);
-app.use('/admin', jwtAuthMiddleware, adminRoutes);
-
-// Only listen if not running in Vercel (serverless)
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Listening to API at port ${PORT}`);
-  });
 }
 
 export default app;
