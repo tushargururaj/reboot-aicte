@@ -5,29 +5,43 @@ import vision from '@google-cloud/vision';
 import path from 'path';
 import fs from 'fs';
 
-// Set credentials path
+// Set credentials path (local fallback)
 const credentialsPath = path.join(process.cwd(), 'config', 'google-credentials.json');
 
-// Verify credentials exist
-if (!fs.existsSync(credentialsPath)) {
-    console.error('Google credentials file not found at:', credentialsPath);
+// Determine credentials source
+let clientConfig = {};
+let credentialsSource = 'none';
+
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+    try {
+        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+        clientConfig = { credentials };
+        credentialsSource = 'env';
+        console.log('Using Google Cloud credentials from environment variable');
+    } catch (error) {
+        console.error('Failed to parse GOOGLE_CREDENTIALS_JSON:', error.message);
+    }
+} else if (fs.existsSync(credentialsPath)) {
+    clientConfig = { keyFilename: credentialsPath };
+    credentialsSource = 'file';
+    console.log('Using Google Cloud credentials from file:', credentialsPath);
+} else {
+    console.warn('WARNING: No Google Cloud credentials found (env or file). Vision API calls will fail.');
 }
 
-// Create Vision client with explicit credentials
-const client = new vision.ImageAnnotatorClient({
-    keyFilename: credentialsPath
-});
+// Create Vision client
+const client = new vision.ImageAnnotatorClient(clientConfig);
 
-/**
- * Extract text from an image using Google Cloud Vision OCR
- * Much more accurate than Tesseract for printed documents
- */
 /**
  * Extract text from an image using Google Cloud Vision OCR
  * Supports file path, Buffer, or GCS URI
  */
 export async function extractTextWithVision(imageSource) {
     try {
+        if (credentialsSource === 'none') {
+            throw new Error('Google Cloud credentials not configured');
+        }
+
         console.log('Starting Google Cloud Vision OCR...');
 
         let request = {};
@@ -86,6 +100,10 @@ export async function extractTextWithVision(imageSource) {
  */
 export async function extractTextFromPDFWithVision(pdfSource) {
     try {
+        if (credentialsSource === 'none') {
+            throw new Error('Google Cloud credentials not configured');
+        }
+
         console.log('Starting Google Cloud Vision PDF extraction...');
 
         let inputConfig = { mimeType: 'application/pdf' };
@@ -151,12 +169,10 @@ export async function extractTextFromPDFWithVision(pdfSource) {
  */
 export async function checkVisionHealth() {
     try {
-        // Simple check - just verify client is configured
-        const credentialsExist = fs.existsSync(credentialsPath);
         return {
-            configured: credentialsExist,
-            credentialsPath: credentialsPath,
-            status: credentialsExist ? 'ready' : 'missing_credentials'
+            configured: credentialsSource !== 'none',
+            mode: credentialsSource,
+            status: credentialsSource !== 'none' ? 'ready' : 'missing_credentials'
         };
     } catch (error) {
         return {
