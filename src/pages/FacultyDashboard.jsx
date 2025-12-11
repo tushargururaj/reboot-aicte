@@ -24,7 +24,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
     const loadSubmissionStats = async () => {
       try {
         setStatsLoading(true);
-        const res = await fetch("http://localhost:3000/submissions/mysubmissions", {
+        const res = await fetch("/api/submissions/mysubmissions", {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -159,12 +159,12 @@ const FacultyDashboard = ({ user, onLogout }) => {
                     key={stat.label}
                     className={`flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 shadow-sm min-w-[120px] ${stat.background}`}
                   >
-                  <span className="text-4xl font-extrabold text-slate-900 leading-none">
-                    {stat.value}
-                  </span>
-                  <span className="mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-slate-600 text-center">
-                    {stat.label}
-                  </span>
+                    <span className="text-4xl font-extrabold text-slate-900 leading-none">
+                      {stat.value}
+                    </span>
+                    <span className="mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-slate-600 text-center">
+                      {stat.label}
+                    </span>
                   </div>
                 ))}
               </div>

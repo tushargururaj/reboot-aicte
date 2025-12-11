@@ -1,6 +1,6 @@
 // src/utils/adminClient.js
 
-const API_BASE = "http://localhost:3000/admin";
+const API_BASE = "/api/admin";
 
 // Helper for fetch
 const fetchJson = async (url) => {
