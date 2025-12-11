@@ -14,7 +14,6 @@ import { extractTextWithVision, extractTextFromPDFWithVision } from './visionSer
  * Extract text from image using Tesseract OCR (fallback)
  */
 async function extractTextFromImageTesseract(imagePath) {
-    // ... existing tesseract code ...
     try {
         console.log('Starting Tesseract OCR for image:', imagePath);
 
@@ -102,8 +101,97 @@ async function extractTextFromPDFFallback(pdfPath) {
         };
     }
 }
-error: error.message,
-    text: ''
+
+/**
+ * Process certificate file (auto-detect type and extract text)
+ * Accepts object: { filePath, buffer, gcsUri, mimeType, originalName }
+ */
+async function processCertificateFile(input) {
+    try {
+        // Normalize input
+        let filePath, buffer, gcsUri, mimeType, originalName;
+
+        if (typeof input === 'string') {
+            filePath = input;
+            originalName = path.basename(input);
+            mimeType = input.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
+        } else {
+            ({ filePath, buffer, gcsUri, mimeType, originalName } = input);
+        }
+
+        const ext = originalName ? path.extname(originalName).toLowerCase() : '';
+        const isPdf = mimeType === 'application/pdf' || ext === '.pdf';
+        let result;
+
+        console.log('========== OCR PROCESSING START ==========');
+        console.log('Input Type:', gcsUri ? 'GCS URI' : buffer ? 'Buffer' : 'File Path');
+        console.log('Is PDF:', isPdf);
+
+        // Try Google Cloud Vision first (better quality)
+        try {
+            // Determine source for Vision
+            const visionSource = gcsUri || buffer || filePath;
+
+            if (isPdf) {
+                console.log('Attempting Google Vision PDF extraction...');
+                result = await extractTextFromPDFWithVision(visionSource);
+                console.log('Vision PDF Success! Extracted', result.text?.length || 0, 'characters');
+            } else {
+                console.log('Attempting Google Vision image OCR...');
+                result = await extractTextWithVision(visionSource);
+                console.log('Vision Image Success! Extracted', result.text?.length || 0, 'characters');
+            }
+
+            if (result.success && result.text && result.text.length > 10) {
+                result.text = cleanExtractedText(result.text);
+                console.log('========== OCR SUCCESS (Vision) ==========');
+                return result;
+            } else {
+                console.warn('Vision returned insufficient text. Trying fallback...');
+            }
+        } catch (visionError) {
+            console.warn('Google Vision API failed:', visionError.message);
+            console.warn('Detailed error:', visionError);
+        }
+
+        // Fallback to Tesseract/pdfjs-dist if Vision fails
+        // Note: Fallbacks might not support GCS URI directly without downloading
+        if (gcsUri && !buffer && !filePath) {
+            console.warn('Skipping fallback OCR because only GCS URI is available and Vision failed.');
+            return {
+                success: false,
+                error: 'OCR failed and fallback unavailable for remote file.',
+                text: ''
+            };
+        }
+
+        const fallbackSource = buffer || filePath;
+
+        console.log('Using fallback OCR method...');
+        if (isPdf) {
+            result = await extractTextFromPDFFallback(fallbackSource);
+            console.log('Fallback PDF result:', result.success ? `${result.text?.length || 0} chars` : result.error);
+        } else {
+            result = await extractTextFromImageTesseract(fallbackSource);
+            console.log('Fallback Tesseract result:', result.success ? `${result.text?.length || 0} chars` : result.error);
+        }
+
+        // Post-processing: clean up text
+        if (result.success && result.text) {
+            result.text = cleanExtractedText(result.text);
+        }
+
+        console.log('========== OCR COMPLETE ==========');
+        console.log('Final Success:', result.success);
+        console.log('Final Text Length:', result.text?.length || 0);
+        return result;
+
+    } catch (error) {
+        console.error('File processing error:', error);
+        return {
+            success: false,
+            error: error.message,
+            text: ''
         };
     }
 }
