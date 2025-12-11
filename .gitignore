@@ -26,4 +26,11 @@ dist-ssr
 server/uploads
 # Ignore uploaded proof files stored by multer
 uploads/
+/uploads
+
+# Google Cloud credentials (NEVER commit these!)
+**/google-credentials.json
+**/service-account*.json
+server/config/*-key.json
 server/config/service-account.json
+

@@ -77,7 +77,8 @@ router.get("/mysubmissions", async (req, res) => {
       date: row.date
         ? new Date(row.date).toISOString().split("T")[0]
         : "N/A",
-      file: row.proof_document,     // stored filename (GCS object name)
+      academic_year: row.academic_year, // Include academic year
+      file: row.proof_document,     // stored filename
       file_name: row.proof_filename, // original shown name
       status: "Submitted"
     }));

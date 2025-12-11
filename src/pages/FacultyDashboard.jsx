@@ -78,12 +78,12 @@ const FacultyDashboard = ({ user, onLogout }) => {
     },
     {
       key: "ai-upload",
-      title: "AI-enabled Upload",
+      title: "✨ AI Certificate Upload",
       description:
-        "Upload certificates and let AI pre-fill title, dates, and contribution type.",
+        "Upload certificates and let AI automatically extract and fill all details for you!",
       onClick: () => navigate("/ai-upload"),
-      accent: "border-purple-300 hover:border-purple-400",
-      badge: "Coming Soon",
+      accent: "border-purple-400 hover:border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50",
+      badge: "NEW",
     },
     {
       key: "events",
@@ -190,7 +190,10 @@ const FacultyDashboard = ({ user, onLogout }) => {
                       </p>
                     </div>
                     {card.badge && (
-                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-xs font-semibold text-slate-600 border border-slate-200">
+                      <span className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${card.badge === 'NEW'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        }`}>
                         {card.badge}
                       </span>
                     )}

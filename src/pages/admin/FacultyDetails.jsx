@@ -163,40 +163,69 @@ const FacultyDetails = ({ user, onLogout }) => {
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-slate-200">
-                                <thead className="bg-slate-50 text-[1.22rem]">
+                                <thead className="bg-slate-50 text-[1.05rem]">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Proof</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
+                                        <th className="px-6 py-4 text-left font-semibold text-slate-600 uppercase tracking-wider w-16">S.No</th>
+                                        <th className="px-6 py-4 text-left font-semibold text-slate-600 uppercase tracking-wider max-w-xs">Title</th>
+                                        <th className="px-6 py-4 text-left font-semibold text-slate-600 uppercase tracking-wider">Category</th>
+                                        <th className="px-6 py-4 text-left font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Date of Conduct</th>
+                                        <th className="px-6 py-4 text-left font-semibold text-slate-600 uppercase tracking-wider hidden md:table-cell">Year/Date</th>
+                                        <th className="px-6 py-4 text-right font-semibold text-slate-600 uppercase tracking-wider">Proof</th>
+                                        <th className="px-6 py-4 text-right font-semibold text-slate-600 uppercase tracking-wider">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-slate-200">
+                                <tbody className="bg-white divide-y divide-slate-100">
                                     {submissions.length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-8 text-center text-slate-500">No submissions found for this faculty.</td>
+                                            <td colSpan="7" className="px-6 py-8 text-center text-slate-500">No submissions found for this faculty.</td>
                                         </tr>
                                     ) : (
-                                        submissions.map((sub) => (
+                                        submissions.map((sub, index) => (
                                             <tr key={sub.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-lg font-medium text-slate-900">{sub.title}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-lg text-slate-600">{sub.category}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-lg text-slate-600">{sub.date}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-lg font-medium">
-                                                    <a
-                                                        href={sub.docUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                                                        download
+                                                {/* Serial Number */}
+                                                <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-slate-500">{index + 1}</td>
+
+                                                {/* Title with wrapping */}
+                                                <td className="px-6 py-4 text-base font-semibold text-slate-900 max-w-xs break-words whitespace-normal">
+                                                    {sub.title}
+                                                </td>
+
+                                                {/* Category */}
+                                                <td className="px-6 py-4 whitespace-nowrap text-base text-slate-600">{sub.code || sub.category}</td>
+
+                                                {/* Date of Conduct */}
+                                                <td className="px-6 py-4 whitespace-nowrap text-base text-slate-600 hidden lg:table-cell">
+                                                    {sub.date !== 'N/A' ? sub.date : '-'}
+                                                </td>
+
+                                                {/* Academic Year */}
+                                                <td className="px-6 py-4 whitespace-nowrap text-base text-slate-600 hidden md:table-cell">
+                                                    {sub.academic_year || '-'}
+                                                </td>
+
+                                                {/* Proof Download */}
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-base font-medium">
+                                                    <button
+                                                        onClick={() => {
+                                                            const filePath = sub.file; // From adminRoutes mapping
+                                                            const fileName = sub.file_name;
+
+                                                            if (!filePath) return;
+
+                                                            window.location.href =
+                                                                `http://localhost:3000/api/submissions/file-by-path?p=${encodeURIComponent(filePath)}&name=${encodeURIComponent(fileName)}`;
+                                                        }}
+                                                        className={`text-indigo-600 hover:text-indigo-900 hover:underline ${!sub.file ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                        disabled={!sub.file}
                                                     >
                                                         Download Proof
-                                                    </a>
+                                                    </button>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-lg font-medium">
+
+                                                {/* Delete Action */}
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-base font-medium">
                                                     <button
-                                                        onClick={() => handleDeleteSubmission(sub.category, sub.id)}
+                                                        onClick={() => handleDeleteSubmission(sub.code || sub.category, sub.id)}
                                                         className="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-semibold"
                                                     >
                                                         Delete

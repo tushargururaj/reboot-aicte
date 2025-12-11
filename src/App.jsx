@@ -11,6 +11,7 @@ import MySubmissions from "./pages/MySubmissions.jsx";
 import Profile from "./pages/Profile.jsx";
 import SimpleFacultyPage from "./pages/SimpleFacultyPage.jsx";
 import Drafts from "./pages/Drafts.jsx";
+import AIUploadPage from "./pages/AIUploadPage.jsx";
 
 // --- Form Router ---
 import SectionFormRouter from "./pages/forms/SectionFormRouter.jsx";
@@ -155,8 +156,8 @@ const App = () => {
       <Route path="/profile" element={user && user.role === "faculty" ? (<Profile user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/new-submission/:sectionCode" element={user && user.role === "faculty" ? (<SectionFormRouter user={user} />) : (<Navigate to="/" replace />)} />
 
-      {/* Placeholders using SimpleFacultyPage */}
-      <Route path="/ai-upload" element={user && user.role === "faculty" ? (<SimpleFacultyPage user={user} title="AI-enabled Upload" message="This page will let you upload certificates and use AI to auto-fill contribution details." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
+      {/* AI Upload - Real Implementation */}
+      <Route path="/ai-upload" element={user && user.role === "faculty" ? (<AIUploadPage user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/events" element={user && user.role === "faculty" ? (<SimpleFacultyPage user={user} title="Upcoming Events" message="This page will list upcoming FDPs, workshops, conferences, and important internal deadlines." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/guidelines" element={user && user.role === "faculty" ? (<SimpleFacultyPage user={user} title="Submission Guidelines" message="This page will provide detailed guidelines on acceptable contributions and proof documents." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/help" element={user && user.role === "faculty" ? (<SimpleFacultyPage user={user} title="Help & Support" message="This page will contain FAQs and contact information for technical and NBA-related help." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />

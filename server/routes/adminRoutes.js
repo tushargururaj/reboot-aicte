@@ -5,6 +5,35 @@ import { calculateCAY } from "../utils/cay.js";
 import path from "path";
 import fs from "fs";
 
+// Get All Submissions (Across all categories)
+router.get("/all-submissions", async (req, res) => {
+  try {
+    const query = `
+      SELECT m.id, m.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, m.society_name AS title, '6.1.1.1' AS code, m.academic_year, NULL AS date, m.proof_document, m.proof_filename, 'Submitted' AS status FROM prof_memberships m LEFT JOIN users u ON m.faculty_id = u.id
+      UNION ALL
+      SELECT r.id, r.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, r.event_name AS title, '6.1.2.1.1' AS code, r.academic_year, r.date, r.proof_document, r.proof_filename, 'Submitted' AS status FROM resource_person r LEFT JOIN users u ON r.faculty_id = u.id
+      UNION ALL
+      SELECT f.id, f.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, f.program_name AS title, '6.1.2.2.1' AS code, f.academic_year, f.date, f.proof_document, f.proof_filename, 'Submitted' AS status FROM fdp f LEFT JOIN users u ON f.faculty_id = u.id
+      UNION ALL
+      SELECT c.id, c.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, c.course_name AS title, '6.1.4.1' AS code, c.academic_year, NULL AS date, c.proof_document, c.proof_filename, 'Submitted' AS status FROM mooc_course c LEFT JOIN users u ON c.faculty_id = u.id
+      ORDER BY academic_year DESC, date DESC, id DESC
+    `;
+
+    const result = await db.query(query);
+
+    // Process results if needed (e.g. formatting dates)
+    const submissions = result.rows.map(row => ({
+      ...row,
+      date: row.date ? new Date(row.date).toISOString().split('T')[0] : 'N/A'
+    }));
+
+    res.json(submissions);
+  } catch (err) {
+    console.error("Error fetching all submissions:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 import { bucket } from "../config/gcs.js";
 
@@ -67,6 +96,7 @@ router.get("/submissions/:id", async (req, res) => {
       date: row.date
         ? new Date(row.date).toISOString().split("T")[0]
         : "N/A",
+      academic_year: row.academic_year, // Include academic year
       file: row.proof_document,     // stored filename
       file_name: row.proof_filename, // original shown name
       status: "Submitted"
@@ -131,10 +161,10 @@ router.get("/6.1.2.1.1", async (req, res) => {
     console.log("CAY Years:", CAY, year1, year2, year3);
 
     const [CAY_Data, CAYm1, CAYm2, CAYm3] = await Promise.all([
-      db.query(`SELECT a.faculty_id, u.name AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [CAY]),
-      db.query(`SELECT a.faculty_id, u.name AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [year1]),
-      db.query(`SELECT a.faculty_id, u.name AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [year2]),
-      db.query(`SELECT a.faculty_id, u.name AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [year3])
+      db.query(`SELECT a.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a LEFT JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [CAY]),
+      db.query(`SELECT a.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a LEFT JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [year1]),
+      db.query(`SELECT a.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a LEFT JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [year2]),
+      db.query(`SELECT a.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, a.event_name, a.date, a.location, a.organizer, a.proof_document, a.proof_filename FROM resource_person a LEFT JOIN users u ON a.faculty_id = u.id WHERE a.academic_year = $1;`, [year3])
     ]);
 
     const mapRow = (row) => ({
@@ -166,10 +196,10 @@ router.get("/6.1.2.2.1", async (req, res) => {
     console.log("CAY Years:", CAY, year1, year2, year3);
 
     const [CAY_Data, CAYm1, CAYm2, CAYm3] = await Promise.all([
-      db.query(`SELECT f.faculty_id, u.name AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [CAY]),
-      db.query(`SELECT f.faculty_id, u.name AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [year1]),
-      db.query(`SELECT f.faculty_id, u.name AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [year2]),
-      db.query(`SELECT f.faculty_id, u.name AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [year3])
+      db.query(`SELECT f.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f LEFT JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [CAY]),
+      db.query(`SELECT f.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f LEFT JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [year1]),
+      db.query(`SELECT f.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f LEFT JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [year2]),
+      db.query(`SELECT f.faculty_id, COALESCE(u.name, 'Unknown Faculty') AS faculty_name, f.program_name, f.date, f.duration_days, f.proof_document, f.proof_filename FROM fdp f LEFT JOIN users u ON f.faculty_id = u.id WHERE f.academic_year = $1;`, [year3])
     ]);
 
     const calculateMarks = (duration) => {
@@ -214,7 +244,7 @@ router.get("/6.1.1.1", async (req, res) => {
 	m.proof_document,
 	m.proof_filename
     FROM prof_memberships m
-    JOIN users u ON m.faculty_id = u.id;`
+    LEFT JOIN users u ON m.faculty_id = u.id;`
       // Temporarily removed WHERE clause to see all data
       // WHERE m.academic_year = $1;`,
       // [year1]
@@ -247,7 +277,7 @@ router.get("/6.1.4.1", async (req, res) => {
     const result = await db.query(
       `SELECT
     c.faculty_id,
-    u.name AS faculty_name,
+    COALESCE(u.name, 'Unknown Faculty') AS faculty_name,
     c.course_name,
     c.offering_institute AS agency,
     c.grade_obtained,
@@ -255,7 +285,7 @@ router.get("/6.1.4.1", async (req, res) => {
 	c.proof_document,
 	c.proof_filename
 FROM mooc_course c
-JOIN users u ON c.faculty_id = u.id;`
+LEFT JOIN users u ON c.faculty_id = u.id;`
       // Temporarily removed WHERE clause
     );
     console.log("Found", result.rows.length, "MOOC courses");

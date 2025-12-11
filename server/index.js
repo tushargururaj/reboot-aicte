@@ -7,6 +7,7 @@ import path from 'path';
 import submissionRoutes from './routes/submissionRoutes.js';
 import jwtAuthMiddleware from './middleware/jwtAuthmiddleware.js';
 import adminRoutes from './routes/adminRoutes.js';
+import aiUploadRoutes from './routes/aiUpload.routes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
 import cors from "cors";
@@ -38,6 +39,12 @@ app.get('/', async (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/submissions', jwtAuthMiddleware, submissionRoutes);
+
+app.use('/api/ai-upload', jwtAuthMiddleware, aiUploadRoutes);
+// Public health check for AI upload
+app.get('/api/ai-upload-health', (req, res) => {
+  res.json({ status: 'ok', service: 'AI Upload', timestamp: new Date().toISOString() });
+});
 app.use('/api/profile', jwtAuthMiddleware, profileRoutes);
 app.use('/api/admin', jwtAuthMiddleware, adminRoutes);
 app.use('/api/public', publicRoutes);

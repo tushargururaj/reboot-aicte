@@ -118,72 +118,65 @@ export async function flushSubmissionQueue() {
  * Returns: server JSON (resolved on res.ok) or throws Error on network / server non-ok
  */
 export async function submitSubmission({ userId, sectionCode, payload, file, retrying = false }) {
-    // Absolute URL is safer than relative
-    const url = "/api/submissions/submit";
+// Absolute URL is safer than relative
+const url = "/api/submissions/submit";
+
+try {
+    let res;
+    if (file) {
+        const fd = new FormData();
+        fd.append("userId", userId);
+        fd.append("sectionCode", sectionCode);
+        fd.append("payload", JSON.stringify(payload || {}));
+        fd.append("file", file, file.name);
+
+        res = await fetch(url, {
+            method: "POST",
+            credentials: "include",
+            body: fd,
+        });
+    } else {
+        res = await fetch(url, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId, sectionCode, payload }),
+        });
+    }
+
+    const contentType = res.headers.get("content-type") || "";
+    const isJson = contentType.includes("application/json");
+
+    const data = isJson 
+        ? await res.json() 
+        : { success: res.ok, statusText: res.statusText };
+
+    if (!res.ok) {
+        const msg = data?.message || data?.error || `Server responded ${res.status}`;
+        const err = new Error(msg);
+        err.status = res.status;
+        err.payload = data;
+        throw err;
+    }
+
+    return data;
+} catch (err) {
+    console.error("submitSubmission failed:", err);
+
+    if (file) throw err;
 
     try {
-        let res;
-        if (file) {
-            const fd = new FormData();
-            fd.append("userId", userId);
-            fd.append("sectionCode", sectionCode);
-            // payload stringified
-            fd.append("payload", JSON.stringify(payload || {}));
-            fd.append("file", file, file.name);
-
-            res = await fetch(url, {
-                method: "POST",
-                credentials: "include",
-                body: fd,
-            });
-        } else {
-            res = await fetch(url, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ userId, sectionCode, payload }),
-            });
-        }
-
-        // handle non-JSON responses as well
-        const contentType = res.headers.get("content-type") || "";
-        const isJson = contentType.includes("application/json");
-
-        const data = isJson ? await res.json() : { success: res.ok, statusText: res.statusText };
-
-        if (!res.ok) {
-            // server returned non-2xx
-            const msg = (data && (data.message || data.error)) || `Server responded ${res.status}`;
-            const err = new Error(msg);
-            err.status = res.status;
-            err.payload = data;
-            throw err;
-        }
-
-        // success
-        return data;
-    } catch (err) {
-        // network or server error
-        // If it's a network error (no response), err will likely not have status.
-        console.error("submitSubmission failed:", err);
-
-        // If file present, we cannot reliably queue the file payload (can't persist File in localStorage),
-        // so propagate error to caller to allow saving as draft or instruct user.
-        if (file) throw err;
-
-        // Enqueue JSON-only payload for retry later
-        try {
-            enqueueSubmission({ userId, sectionCode, payloadObj: payload });
-            // return a local-queued marker so UI can inform user
-            return { success: true, queued: true, message: "Saved to local queue (offline). Will retry later." };
-        } catch (qErr) {
-            console.error("Failed to enqueue submission:", qErr);
-            throw err;
-        }
+        enqueueSubmission({ userId, sectionCode, payloadObj: payload });
+        return { success: true, queued: true, message: "Saved to local queue (offline). Will retry later." };
+    } catch (qErr) {
+        console.error("Failed to enqueue submission:", qErr);
+        throw err;
     }
 }
+
+
 
 /* -------------------- helper: prepare payload from form state & call submitSubmission -------------------- */
 export async function submitFormFromState({ user, sectionCode, formState, file }) {
