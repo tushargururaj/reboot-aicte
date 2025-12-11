@@ -26,6 +26,8 @@ import FacultyDetails from "./pages/admin/FacultyDetails.jsx";
 import SubmissionCategories from "./pages/admin/SubmissionCategories.jsx";
 import SubmissionTable from "./pages/admin/SubmissionTable.jsx";
 import ReportsAnalytics from "./pages/admin/ReportsAnalytics.jsx";
+import MagicLinkGenerator from "./pages/admin/MagicLinkGenerator.jsx";
+import MagicLinkPage from "./pages/public/MagicLinkPage.jsx";
 
 
 // Auth page for login/signup toggle
@@ -175,6 +177,10 @@ const App = () => {
       <Route path="/admin/reports" element={<AdminRouteWrapper><ReportsAnalytics user={user} onLogout={handleLogout} /></AdminRouteWrapper>} />
       <Route path="/admin/events" element={<AdminRouteWrapper><AdminSimplePage user={user} onLogout={handleLogout} title="Event Management" message="Tools to manage FDPs, STTPs, and deadlines." activeKey="event-management" /></AdminRouteWrapper>} />
       <Route path="/admin/system" element={<AdminRouteWrapper><AdminSimplePage user={user} onLogout={handleLogout} title="System Utilities" message="Tools for database status and system maintenance." activeKey="system-utilities" /></AdminRouteWrapper>} />
+      <Route path="/admin/magic-links" element={<AdminRouteWrapper><MagicLinkGenerator user={user} onLogout={handleLogout} /></AdminRouteWrapper>} />
+
+      {/* 🪄 PUBLIC MAGIC LINKS */}
+      <Route path="/portal/secure-entry/:token" element={<MagicLinkPage />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

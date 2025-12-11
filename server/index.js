@@ -8,6 +8,7 @@ import submissionRoutes from './routes/submissionRoutes.js';
 import jwtAuthMiddleware from './middleware/jwtAuthmiddleware.js';
 import adminRoutes from './routes/adminRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
+import publicRoutes from './routes/publicRoutes.js';
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -20,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 // if you need cookies/sessions → set credentials: true and same on frontend
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",   // your frontend URL
+    origin: process.env.FRONTEND_URL || "http://localhost:5173" || "http://localhost:5174",   // your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,                 // only if you use cookies/auth headers
@@ -39,6 +40,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/submissions', jwtAuthMiddleware, submissionRoutes);
 app.use('/api/profile', jwtAuthMiddleware, profileRoutes);
 app.use('/api/admin', jwtAuthMiddleware, adminRoutes);
+app.use('/api/public', publicRoutes);
 
 // Only listen if not running in Vercel (serverless)
 if (process.env.NODE_ENV !== 'production') {
