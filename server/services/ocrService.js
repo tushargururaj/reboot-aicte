@@ -113,20 +113,14 @@ async function processCertificateFile(filePath) {
         const ext = path.extname(filePath).toLowerCase();
         let result;
 
-        console.log('========== OCR PROCESSING START ==========');
-        console.log('File:', filePath);
-        console.log('Extension:', ext);
+        console.log('[OCR] Processing:', filePath, '| Type:', ext);
 
         // Try Google Cloud Vision first (better quality)
         try {
             if (ext === '.pdf') {
-                console.log('Attempting Google Vision PDF extraction...');
                 result = await extractTextFromPDFWithVision(filePath);
-                console.log('Vision PDF Success! Extracted', result.text?.length || 0, 'characters');
             } else if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'].includes(ext)) {
-                console.log('Attempting Google Vision image OCR...');
                 result = await extractTextWithVision(filePath);
-                console.log('Vision Image Success! Extracted', result.text?.length || 0, 'characters');
             } else {
                 return {
                     success: false,
@@ -137,34 +131,25 @@ async function processCertificateFile(filePath) {
 
             if (result.success && result.text && result.text.length > 10) {
                 result.text = cleanExtractedText(result.text);
-                console.log('========== OCR SUCCESS (Vision) ==========');
+                console.log('[OCR] Success via Vision API:', result.text?.length || 0, 'chars');
                 return result;
-            } else {
-                console.warn('Vision returned insufficient text. Trying fallback...');
             }
         } catch (visionError) {
-            console.warn('Google Vision API failed:', visionError.message);
-            console.warn('Detailed error:', visionError);
+            console.warn('[OCR] Vision API failed, using fallback:', visionError.message);
         }
 
-        // Fallback to Tesseract/pdfjs-dist if Vision fails
-        console.log('Using fallback OCR method...');
+        // Fallback to Tesseract/pdfjs-dist
         if (ext === '.pdf') {
             result = await extractTextFromPDFFallback(filePath);
-            console.log('Fallback PDF result:', result.success ? `${result.text?.length || 0} chars` : result.error);
         } else {
             result = await extractTextFromImageTesseract(filePath);
-            console.log('Fallback Tesseract result:', result.success ? `${result.text?.length || 0} chars` : result.error);
         }
 
-        // Post-processing: clean up text
         if (result.success && result.text) {
             result.text = cleanExtractedText(result.text);
         }
 
-        console.log('========== OCR COMPLETE ==========');
-        console.log('Final Success:', result.success);
-        console.log('Final Text Length:', result.text?.length || 0);
+        console.log('[OCR] Complete:', result.success ? `${result.text?.length || 0} chars` : 'Failed');
         return result;
 
     } catch (error) {

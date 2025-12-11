@@ -1,4 +1,4 @@
-// src/adm_components/AdminLayout.jsx
+// src/components/admin/AdminLayout.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AdminHeader from "./AdminHeader.jsx";

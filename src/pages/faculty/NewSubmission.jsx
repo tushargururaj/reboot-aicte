@@ -1,14 +1,14 @@
-// src/pages/NewSubmission.jsx
+// src/pages/faculty/NewSubmission.jsx
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import { getDraftsForUser } from "../utils/submissionsClient";
-import FacultySidebar from "../components/FacultySidebar";
+import Header from "../../components/common/Header";
+import { getDraftsForUser } from "../../utils/submissionsClient";
+import FacultySidebar from "../../components/faculty/FacultySidebar";
 import {
   getDefaultFacultyNavItems,
   getProfileNavItem,
   getHelpNavItem,
-} from "../utils/facultyNav";
+} from "../../utils/facultyNav";
 
 // 📝 NOTE: If 'Inter' font is not globally imported (e.g., in index.html or index.css), 
 // it won't be applied. Assuming a global font setup for this change.
@@ -136,13 +136,13 @@ const NewSubmission = ({ user, onBack, onLogout }) => {
 
   const userId = user?.id || user?.email || "anonymous";
   const draftCount = useMemo(
-    () => getDraftsForUser(userId).length, 
+    () => getDraftsForUser(userId).length,
     [userId]
   );
   const navItems = getDefaultFacultyNavItems(navigate, "new-submission");
   const profileItem = getProfileNavItem(navigate, false);
   const helpItem = getHelpNavItem(navigate);
-  
+
   return (
     <div
       className="min-h-screen flex"
@@ -215,11 +215,10 @@ const NewSubmission = ({ user, onBack, onLogout }) => {
                   key={type.key}
                   type="button"
                   onClick={() => navigate(`/new-submission/${type.key}`)}
-                  className={`group relative text-left bg-white/95 rounded-2xl border shadow-sm px-5 py-5 min-h-[170px] sm:min-h-[190px] transition-all duration-200 hover:-translate-y-[3px] hover:shadow-md ${
-                    type.active
-                      ? "border-slate-200 hover:border-indigo-400 cursor-pointer"
-                      : "border-slate-200/80 hover:border-slate-300 cursor-default opacity-70"
-                  }`}
+                  className={`group relative text-left bg-white/95 rounded-2xl border shadow-sm px-5 py-5 min-h-[170px] sm:min-h-[190px] transition-all duration-200 hover:-translate-y-[3px] hover:shadow-md ${type.active
+                    ? "border-slate-200 hover:border-indigo-400 cursor-pointer"
+                    : "border-slate-200/80 hover:border-slate-300 cursor-default opacity-70"
+                    }`}
                   disabled={!type.active}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1.5">

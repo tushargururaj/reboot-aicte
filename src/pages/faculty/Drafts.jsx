@@ -1,17 +1,17 @@
-// src/pages/FacultyDrafts.jsx
+// src/pages/faculty/Drafts.jsx
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
+import Header from "../../components/common/Header";
 import {
   getDraftsForUser,
   deleteDraft,
-} from "../utils/submissionsClient";
-import FacultySidebar from "../components/FacultySidebar";
+} from "../../utils/submissionsClient";
+import FacultySidebar from "../../components/faculty/FacultySidebar";
 import {
   getDefaultFacultyNavItems,
   getProfileNavItem,
   getHelpNavItem,
-} from "../utils/facultyNav";
+} from "../../utils/facultyNav";
 
 const FacultyDrafts = ({ user, onBack, onLogout }) => {
   const navigate = useNavigate();

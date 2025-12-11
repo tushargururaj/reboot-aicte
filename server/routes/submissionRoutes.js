@@ -43,7 +43,6 @@ router.get("/file-by-path", async (req, res) => {
 
 /* ------------------------
    FETCH MY SUBMISSIONS
-   FETCH MY SUBMISSIONS
 ------------------------- */
 router.get("/mysubmissions", async (req, res) => {
   try {

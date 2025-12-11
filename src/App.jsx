@@ -1,22 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
-// --- Standard Pages ---
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
-import FacultyDashboard from "./pages/FacultyDashboard.jsx";
-import NewSubmission from "./pages/NewSubmission.jsx";
-import MySubmissions from "./pages/MySubmissions.jsx";
-import Profile from "./pages/Profile.jsx";
-import SimpleFacultyPage from "./pages/SimpleFacultyPage.jsx";
-import Drafts from "./pages/Drafts.jsx";
-import AIUploadPage from "./pages/AIUploadPage.jsx";
+// --- Auth Pages ---
+import Login from "./pages/auth/Login.jsx";
+import Signup from "./pages/auth/Signup.jsx";
+
+// --- Faculty Pages ---
+import Dashboard from "./pages/faculty/Dashboard.jsx";
+import NewSubmission from "./pages/faculty/NewSubmission.jsx";
+import Submissions from "./pages/faculty/Submissions.jsx";
+import Profile from "./pages/faculty/Profile.jsx";
+import SimplePage from "./pages/faculty/SimplePage.jsx";
+import Drafts from "./pages/faculty/Drafts.jsx";
+import AIUpload from "./pages/faculty/AIUpload.jsx";
 
 // --- Form Router ---
 import SectionFormRouter from "./pages/forms/SectionFormRouter.jsx";
 
 // --- Admin Pages ---
-import AdminDashboard from "./pages/AdminDashboard.jsx";
+import AdminDashboard from "./pages/admin/Dashboard.jsx";
 import AdminProfile from "./pages/admin/AdminProfile.jsx";
 import AdminSimplePage from "./pages/admin/AdminSimplePage.jsx";
 
@@ -148,18 +150,18 @@ const App = () => {
       />
 
       {/* 🚀 FACULTY ROUTES */}
-      <Route path="/faculty" element={user && user.role === "faculty" ? (<FacultyDashboard user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
-      <Route path="/faculty-submissions" element={user && user.role === "faculty" ? (<MySubmissions user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
+      <Route path="/faculty" element={user && user.role === "faculty" ? (<Dashboard user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
+      <Route path="/faculty-submissions" element={user && user.role === "faculty" ? (<Submissions user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/new-submission" element={user && user.role === "faculty" ? (<NewSubmission user={user} onBack={() => navigate("/faculty")} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/faculty-drafts" element={user && user.role === "faculty" ? (<Drafts user={user} onBack={() => navigate("/new-submission")} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/profile" element={user && user.role === "faculty" ? (<Profile user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
       <Route path="/new-submission/:sectionCode" element={user && user.role === "faculty" ? (<SectionFormRouter user={user} />) : (<Navigate to="/" replace />)} />
 
       {/* AI Upload - Real Implementation */}
-      <Route path="/ai-upload" element={user && user.role === "faculty" ? (<AIUploadPage user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
-      <Route path="/events" element={user && user.role === "faculty" ? (<SimpleFacultyPage user={user} title="Upcoming Events" message="This page will list upcoming FDPs, workshops, conferences, and important internal deadlines." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
-      <Route path="/guidelines" element={user && user.role === "faculty" ? (<SimpleFacultyPage user={user} title="Submission Guidelines" message="This page will provide detailed guidelines on acceptable contributions and proof documents." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
-      <Route path="/help" element={user && user.role === "faculty" ? (<SimpleFacultyPage user={user} title="Help & Support" message="This page will contain FAQs and contact information for technical and NBA-related help." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
+      <Route path="/ai-upload" element={user && user.role === "faculty" ? (<AIUpload user={user} onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
+      <Route path="/events" element={user && user.role === "faculty" ? (<SimplePage user={user} title="Upcoming Events" message="This page will list upcoming FDPs, workshops, conferences, and important internal deadlines." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
+      <Route path="/guidelines" element={user && user.role === "faculty" ? (<SimplePage user={user} title="Submission Guidelines" message="This page will provide detailed guidelines on acceptable contributions and proof documents." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
+      <Route path="/help" element={user && user.role === "faculty" ? (<SimplePage user={user} title="Help & Support" message="This page will contain FAQs and contact information for technical and NBA-related help." onLogout={handleLogout} />) : (<Navigate to="/" replace />)} />
 
       {/* 👑 ADMIN ROUTES */}
       <Route path="/admin" element={<AdminRouteWrapper><AdminDashboard user={user} onLogout={handleLogout} /></AdminRouteWrapper>} />

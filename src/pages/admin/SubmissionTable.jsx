@@ -1,7 +1,7 @@
 // src/pages/admin/SubmissionTable.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import AdminLayout from "../../adm_components/AdminLayout.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 import { getCategoryReport } from "../../utils/adminClient.js";
 
 const SubmissionTable = ({ user, onLogout }) => {

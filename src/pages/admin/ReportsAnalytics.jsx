@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import AdminLayout from "../../adm_components/AdminLayout.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 import { getSystemAnalytics } from "../../utils/adminClient.js";
 import {
     BarChart,

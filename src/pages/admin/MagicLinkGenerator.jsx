@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getFacultyList, generateMagicLink } from "../../utils/adminClient";
-import AdminLayout from "../../adm_components/AdminLayout";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 
 const MagicLinkGenerator = ({ user, onLogout }) => {
     const [facultyList, setFacultyList] = useState([]);

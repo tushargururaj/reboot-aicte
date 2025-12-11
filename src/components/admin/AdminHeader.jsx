@@ -1,4 +1,4 @@
-// src/adm_components/AdminHeader.jsx
+// src/components/admin/AdminHeader.jsx
 import React from "react";
 
 const AdminHeader = ({ title, user, onLogout }) => {

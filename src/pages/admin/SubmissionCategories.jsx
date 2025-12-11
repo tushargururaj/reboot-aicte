@@ -1,7 +1,7 @@
 // src/pages/admin/SubmissionCategories.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import AdminLayout from "../../adm_components/AdminLayout.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 
 const SubmissionCategories = ({ user, onLogout }) => {
     const navigate = useNavigate();
@@ -141,8 +141,8 @@ const SubmissionCategories = ({ user, onLogout }) => {
                             type="button"
                             onClick={() => navigate(`/admin/submissions/${type.key}`)}
                             className={`group relative text-left bg-white/95 rounded-2xl border shadow-sm px-5 py-5 min-h-[170px] sm:min-h-[190px] transition-all duration-200 hover:-translate-y-[3px] hover:shadow-md ${type.active
-                                    ? "border-slate-200 hover:border-fuchsia-400 cursor-pointer"
-                                    : "border-slate-200/80 hover:border-slate-300 cursor-pointer opacity-80" // Allow clicking even inactive ones for admin review if needed, or keep consistent
+                                ? "border-slate-200 hover:border-fuchsia-400 cursor-pointer"
+                                : "border-slate-200/80 hover:border-slate-300 cursor-pointer opacity-80" // Allow clicking even inactive ones for admin review if needed, or keep consistent
                                 }`}
                         >
                             <div className="flex items-start justify-between gap-2 mb-1.5">

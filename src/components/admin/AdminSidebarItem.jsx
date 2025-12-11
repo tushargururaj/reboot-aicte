@@ -1,4 +1,4 @@
-// src/adm_components/AdminSidebarItem.jsx
+// src/components/admin/AdminSidebarItem.jsx
 import React from "react";
 
 const AdminSidebarItem = ({ label, icon, active = false, onClick }) => {

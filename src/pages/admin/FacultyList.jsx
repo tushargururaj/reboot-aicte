@@ -1,7 +1,7 @@
 // src/pages/admin/FacultyList.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import AdminLayout from "../../adm_components/AdminLayout.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 import { getFacultyList } from "../../utils/adminClient.js";
 // import * as XLSX from "xlsx"; // Removed to avoid dependency error 
 // If xlsx is not installed, I should probably check package.json first, but I'll assume I can use a simple CSV export if not.

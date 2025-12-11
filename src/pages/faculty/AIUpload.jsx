@@ -6,18 +6,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
 // Components
-import Header from '../components/Header';
-import FacultySidebar from '../components/FacultySidebar';
-import ChatMessage from '../components/faculty/ChatMessage';
-import CertificatePreview from '../components/faculty/CertificatePreview';
-import ExtractedDataCard from '../components/faculty/ExtractedDataCard';
-import ProgressSteps from '../components/common/ProgressSteps';
-import TypingIndicator from '../components/common/TypingIndicator';
+import Header from '../../components/common/Header';
+import FacultySidebar from '../../components/faculty/FacultySidebar';
+import ChatMessage from '../../components/faculty/ChatMessage';
+import CertificatePreview from '../../components/faculty/CertificatePreview';
+import ExtractedDataCard from '../../components/faculty/ExtractedDataCard';
+import ProgressSteps from '../../components/common/ProgressSteps';
+import TypingIndicator from '../../components/common/TypingIndicator';
 import {
     getDefaultFacultyNavItems,
     getProfileNavItem,
     getHelpNavItem,
-} from '../utils/facultyNav';
+} from '../../utils/facultyNav';
 
 const AIUploadPage = ({ user, onLogout }) => {
     const navigate = useNavigate();
@@ -139,27 +139,16 @@ const AIUploadPage = ({ user, onLogout }) => {
         try {
             setCurrentStep(3); // AI Analysis
 
-            // 1. Get Signed URL
-            setProcessingStep('Preparing secure upload...');
-            const { data: { uploadUrl, gcsPath } } = await axios.get('/api/ai-upload/upload-url', {
-                params: {
-                    filename: file.name,
-                    contentType: file.type || 'application/octet-stream'
-                }
-            });
+            // Upload via server-side multipart form (avoids CORS issues with GCS)
+            setProcessingStep('Uploading file...');
+            const formData = new FormData();
+            formData.append('certificate', file);
 
-            // 2. Upload directly to GCS
-            setProcessingStep('Uploading file to cloud...');
-            await axios.put(uploadUrl, file, {
+            setProcessingStep('Processing document with AI...');
+            const response = await axios.post('/api/ai-upload/process', formData, {
                 headers: {
-                    'Content-Type': file.type || 'application/octet-stream'
+                    'Content-Type': 'multipart/form-data'
                 }
-            });
-
-            // 3. Process the uploaded file
-            setProcessingStep('Processing document...');
-            const response = await axios.post('/api/ai-upload/process', {
-                gcsPath: gcsPath
             });
 
             if (response.data.success) {
