@@ -113,7 +113,10 @@ router.delete("/submission/:code/:id", async (req, res) => {
 router.get("/all-faculty", async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, name, email FROM users WHERE role='faculty'"
+      `SELECT u.id, u.name, u.email, p.phone_number 
+       FROM users u 
+       LEFT JOIN profiles p ON u.id = p.user_id 
+       WHERE u.role='faculty'`
     );
     res.json({ faculty: result.rows });
   } catch (err) {
@@ -300,6 +303,35 @@ router.get("/analytics", async (req, res) => {
   } catch (err) {
     console.error("Error in /analytics:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Generate Magic Link
+router.post("/generate-magic-link", async (req, res) => {
+  try {
+    const { facultyId, sectionCode } = req.body;
+
+    // Generate a secure random token
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    // Set expiry (e.g., 24 hours from now)
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    await db.query(
+      "INSERT INTO magic_links (faculty_id, section_code, token, expires_at) VALUES ($1, $2, $3, $4)",
+      [facultyId, sectionCode, token, expiresAt]
+    );
+
+    // Construct the full URL
+    // Use FRONTEND_URL env var, or fallback to localhost for dev
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const magicLink = `${baseUrl}/portal/secure-entry/${token}`;
+
+    res.json({ success: true, link: magicLink });
+  } catch (err) {
+    console.error("Error generating magic link:", err);
+    res.status(500).json({ error: "Failed to generate link" });
   }
 });
 

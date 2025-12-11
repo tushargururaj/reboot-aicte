@@ -150,3 +150,22 @@ export const getSystemAnalytics = async () => {
         return null;
     }
 };
+
+// Generate Magic Link
+export const generateMagicLink = async (facultyId, sectionCode) => {
+    const res = await fetch(`${API_BASE}/generate-magic-link`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ facultyId, sectionCode })
+    });
+
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to generate link");
+    }
+
+    return await res.json();
+};

@@ -14,6 +14,13 @@ const AdminDashboard = ({ user, onLogout }) => {
       accent: "border-fuchsia-400 hover:border-fuchsia-600",
     },
     {
+      key: "magic-links",
+      title: "Magic Links",
+      description: "Generate secure, one-time submission links for faculty.",
+      onClick: () => navigate("/admin/magic-links"),
+      accent: "border-indigo-400 hover:border-indigo-600",
+    },
+    {
       key: "faculty-list",
       title: "Faculty List",
       description: "Manage faculty directory and view individual portfolios.",

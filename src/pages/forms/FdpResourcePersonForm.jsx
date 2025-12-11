@@ -20,7 +20,7 @@ const Select = ({ name, value, onChange, children }) => (
 );
 
 
-const FdpResourcePersonForm = ({ user, draft, onBack, onLogout }) => {
+const FdpResourcePersonForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink }) => {
   const navigate = useNavigate();
   // FIXED: State declarations moved inside the component
   const [form, setForm] = useState({
@@ -91,6 +91,17 @@ const FdpResourcePersonForm = ({ user, draft, onBack, onLogout }) => {
       durationDays: form.durationDays || 1,      // Use form value or default to 1
     };
 
+    // Custom Handler for Magic Links
+    if (customSubmitHandler) {
+      setSubmitting(true);
+      const result = await customSubmitHandler(payload, proofFile);
+      setSubmitting(false);
+      if (!result.success) {
+        setModal({ open: true, type: "error", title: "Submission Failed", message: "Failed to submit via secure link." });
+      }
+      return;
+    }
+
     await commonHandleSubmit({
       user,
       sectionCode: SECTION_CODE,       // FIXED: Used SECTION_CODE constant
@@ -115,68 +126,79 @@ const FdpResourcePersonForm = ({ user, draft, onBack, onLogout }) => {
     });
   };
 
-
-  return (
-    <FormLayout title="STTP / FDP – Resource Person" user={user} onBack={onBack || (() => navigate("/new-submission"))} onLogout={onLogout || (() => navigate("/"))}>
-      <div className="max-w-5xl mx-auto space-y-8 p-6 bg-white rounded-xl shadow-xl border border-gray-100">
+  const formContent = (
+    <div className={isMagicLink ? "" : "max-w-5xl mx-auto space-y-8 p-6 bg-white rounded-xl shadow-xl border border-gray-100"}>
+      {!isMagicLink && (
         <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-4">
           <div>
             <p className="text-sm text-gray-500 font-mono">Table {SECTION_CODE} · Faculty Contributions</p>
             <h1 className="text-3xl font-semibold text-gray-900">STTP / FDP – Resource Person</h1>
             <p className="text-base text-gray-600 mt-1">Record events where you served as resource person, speaker, or trainer.</p>
           </div>
-          <button type="button" onClick={() => navigate("/new-submission")} className="text-sm font-medium text-indigo-700 hover:text-indigo-900 border border-indigo-200 rounded-lg px-4 py-2 hover:bg-indigo-50 transition">← Back to New Submission</button>
+          {!customSubmitHandler && (
+            <button type="button" onClick={() => navigate("/new-submission")} className="text-sm font-medium text-indigo-700 hover:text-indigo-900 border border-indigo-200 rounded-lg px-4 py-2 hover:bg-indigo-50 transition">← Back to New Submission</button>
+          )}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className={isMagicLink ? "space-y-8" : "rounded-xl bg-gray-50 px-8 py-8 space-y-8 shadow-inner border border-gray-200"}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div><Label>Faculty Name</Label><Input name="facultyName" value={form.facultyName} onChange={(e) => updateField("facultyName", e.target.value)} /></div>
+          <div>
+            <Label>Academic Year</Label>
+            <Select name="academicYear" value={form.academicYear} onChange={(e) => updateField("academicYear", e.target.value)}>
+              <option value="">Select Year</option>
+              {academicYearOptions.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </Select>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-xl bg-gray-50 px-8 py-8 space-y-8 shadow-inner border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div><Label>Faculty Name</Label><Input name="facultyName" value={form.facultyName} onChange={(e) => updateField("facultyName", e.target.value)} /></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-gray-200">
+          <div className="space-y-6">
+            <div><Label>Name of STTP / FDP</Label><Input name="programTitle" value={form.programTitle} onChange={(e) => updateField("programTitle", e.target.value)} placeholder="Event title" /></div>
+            <div><Label>Organizer (Institute)</Label><Input name="organizer" value={form.organizer} onChange={(e) => updateField("organizer", e.target.value)} /></div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Date</Label><Input name="date" type="date" value={form.date} onChange={(e) => updateField("date", e.target.value)} /></div>
+              <div><Label>Duration (Days)</Label><Input name="durationDays" type="number" min="1" value={form.durationDays} onChange={(e) => updateField("durationDays", e.target.value)} placeholder="1" /></div>
+              <div><Label>Location (City)</Label><Input name="location" value={form.location} onChange={(e) => updateField("location", e.target.value)} /></div>
+            </div>
+
             <div>
-              <Label>Academic Year</Label>
-              <Select name="academicYear" value={form.academicYear} onChange={(e) => updateField("academicYear", e.target.value)}>
-                <option value="">Select Year</option>
-                {academicYearOptions.map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-gray-200">
-            <div className="space-y-6">
-              <div><Label>Name of STTP / FDP</Label><Input name="programTitle" value={form.programTitle} onChange={(e) => updateField("programTitle", e.target.value)} placeholder="Event title" /></div>
-              <div><Label>Organizer (Institute)</Label><Input name="organizer" value={form.organizer} onChange={(e) => updateField("organizer", e.target.value)} /></div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>Date</Label><Input name="date" type="date" value={form.date} onChange={(e) => updateField("date", e.target.value)} /></div>
-                <div><Label>Duration (Days)</Label><Input name="durationDays" type="number" min="1" value={form.durationDays} onChange={(e) => updateField("durationDays", e.target.value)} placeholder="1" /></div>
-                <div><Label>Location (City)</Label><Input name="location" value={form.location} onChange={(e) => updateField("location", e.target.value)} /></div>
-              </div>
-
-              <div>
-                <Label>Proof Document</Label>
-                <div onDrop={handleDrop} onDragOver={handleDragOver} onClick={() => document.getElementById("proof-input-fdpres").click()} className={`flex flex-col items-center justify-center px-4 py-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${proofFile ? "border-green-500 bg-green-50" : "border-indigo-300 bg-indigo-50/50 hover:border-indigo-400"} `}>
-                  <p className="mb-1 font-semibold">Drag & drop file here, or click to browse</p>
-                  <p className="text-sm text-indigo-500 mb-2">Accepted: PDF, JPG, PNG (Max 5MB)</p>
-                  <input type="file" id="proof-input-fdpres" className="hidden" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
-                  {proofFile && <p className="mt-2 text-sm text-gray-700 font-medium">✅ Selected: <span className="font-bold">{proofFile.name}</span></p>}
-                </div>
+              <Label>Proof Document</Label>
+              <div onDrop={handleDrop} onDragOver={handleDragOver} onClick={() => document.getElementById("proof-input-fdpres").click()} className={`flex flex-col items-center justify-center px-4 py-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${proofFile ? "border-green-500 bg-green-50" : "border-indigo-300 bg-indigo-50/50 hover:border-indigo-400"} `}>
+                <p className="mb-1 font-semibold">Drag & drop file here, or click to browse</p>
+                <p className="text-sm text-indigo-500 mb-2">Accepted: PDF, JPG, PNG (Max 5MB)</p>
+                <input type="file" id="proof-input-fdpres" className="hidden" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
+                {proofFile && <p className="mt-2 text-sm text-gray-700 font-medium">✅ Selected: <span className="font-bold">{proofFile.name}</span></p>}
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-6 border-t border-gray-200 mt-6">
-            <p className="text-sm text-gray-500">Ensure data accuracy before finalizing the submission.</p>
-            <div className="flex gap-3 justify-end">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-6 border-t border-gray-200 mt-6">
+          <p className="text-sm text-gray-500">Ensure data accuracy before finalizing the submission.</p>
+          <div className="flex gap-3 justify-end">
+            {!isMagicLink && !customSubmitHandler && (
               <button type="button" onClick={handleSaveDraft} disabled={saving || submitting} className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 transition disabled:opacity-60">{saving ? "Saving..." : "Save as Draft"}</button>
-              <button type="submit" disabled={submitting || saving || !proofFile} className="inline-flex items-center rounded-lg bg-indigo-600 px-5 py-2 text-base font-semibold text-white hover:bg-indigo-700 transition shadow-lg disabled:bg-gray-400">{submitting ? "Submitting..." : "Finalize Submission"}</button>
-            </div>
+            )}
+            <button type="submit" disabled={submitting || saving || !proofFile} className="inline-flex items-center rounded-lg bg-indigo-600 px-5 py-2 text-base font-semibold text-white hover:bg-indigo-700 transition shadow-lg disabled:bg-gray-400">{submitting ? "Submitting..." : "Finalize Submission"}</button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
       <SubmissionResultModal {...modal} onClose={() => setModal({ ...modal, open: false })} />
+    </div>
+  );
+
+  if (isMagicLink) return formContent;
+
+  return (
+    <FormLayout title="STTP / FDP – Resource Person" user={user} onBack={onBack || (() => navigate("/new-submission"))} onLogout={onLogout || (() => navigate("/"))}>
+      {formContent}
     </FormLayout>
   );
 };
