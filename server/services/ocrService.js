@@ -102,62 +102,8 @@ async function extractTextFromPDFFallback(pdfPath) {
         };
     }
 }
-
-
-/**
- * Process certificate file (auto-detect type and extract text)
- * Uses Google Cloud Vision API as primary, with fallback to Tesseract/pdf-parse
- */
-async function processCertificateFile(filePath) {
-    try {
-        const ext = path.extname(filePath).toLowerCase();
-        let result;
-
-        console.log('[OCR] Processing:', filePath, '| Type:', ext);
-
-        // Try Google Cloud Vision first (better quality)
-        try {
-            if (ext === '.pdf') {
-                result = await extractTextFromPDFWithVision(filePath);
-            } else if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'].includes(ext)) {
-                result = await extractTextWithVision(filePath);
-            } else {
-                return {
-                    success: false,
-                    error: 'Unsupported file type. Please upload an image (JPG, PNG) or PDF.',
-                    text: ''
-                };
-            }
-
-            if (result.success && result.text && result.text.length > 10) {
-                result.text = cleanExtractedText(result.text);
-                console.log('[OCR] Success via Vision API:', result.text?.length || 0, 'chars');
-                return result;
-            }
-        } catch (visionError) {
-            console.warn('[OCR] Vision API failed, using fallback:', visionError.message);
-        }
-
-        // Fallback to Tesseract/pdfjs-dist
-        if (ext === '.pdf') {
-            result = await extractTextFromPDFFallback(filePath);
-        } else {
-            result = await extractTextFromImageTesseract(filePath);
-        }
-
-        if (result.success && result.text) {
-            result.text = cleanExtractedText(result.text);
-        }
-
-        console.log('[OCR] Complete:', result.success ? `${result.text?.length || 0} chars` : 'Failed');
-        return result;
-
-    } catch (error) {
-        console.error('File processing error:', error);
-        return {
-            success: false,
-            error: error.message,
-            text: ''
+error: error.message,
+    text: ''
         };
     }
 }
