@@ -12,14 +12,17 @@ const credentialsPath = path.join(process.cwd(), 'config', 'google-credentials.j
 let clientConfig = {};
 let credentialsSource = 'none';
 
-if (process.env.GOOGLE_CREDENTIALS_JSON) {
+// Check GOOGLE_CREDENTIALS (matches gcs.js) or GOOGLE_CREDENTIALS_JSON (legacy/alternative)
+const envCredentials = process.env.GOOGLE_CREDENTIALS || process.env.GOOGLE_CREDENTIALS_JSON;
+
+if (envCredentials) {
     try {
-        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+        const credentials = JSON.parse(envCredentials);
         clientConfig = { credentials };
         credentialsSource = 'env';
         console.log('Using Google Cloud credentials from environment variable');
     } catch (error) {
-        console.error('Failed to parse GOOGLE_CREDENTIALS_JSON:', error.message);
+        console.error('Failed to parse GOOGLE_CREDENTIALS:', error.message);
     }
 } else if (fs.existsSync(credentialsPath)) {
     clientConfig = { keyFilename: credentialsPath };
