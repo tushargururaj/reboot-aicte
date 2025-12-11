@@ -6,24 +6,32 @@ import path from "path";
 import fs from "fs";
 
 
-router.get("/download", (req, res) => {
+import { bucket } from "../config/gcs.js";
+
+router.get("/download", async (req, res) => {
   try {
     const fileName = req.query.p;      // stored DB filename ONLY
     const displayName = req.query.name || fileName;
 
     if (!fileName) return res.status(400).send("Missing filename");
 
-    const absolute = path.join(process.cwd(), "uploads", fileName);
-    console.log("Downloading:", absolute);
+    console.log("Generating signed URL for:", fileName);
 
-    if (!fs.existsSync(absolute)) {
-      return res.status(404).send("File not found");
-    }
+    const options = {
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      promptSaveAs: displayName // Optional: hints the browser to save as this name
+    };
 
-    return res.download(absolute, displayName); // clean, automatic download
+    const [url] = await bucket.file(fileName).getSignedUrl(options);
+
+    // Redirect the user to the signed URL
+    res.redirect(url);
+
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server error");
+    res.status(500).send("Server error or file not found");
   }
 });
 

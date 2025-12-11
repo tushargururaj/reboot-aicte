@@ -1,40 +1,40 @@
 import db from "../config/db.js";
 import multer from "multer";
 import express from "express";
-import path from "path";
-import fs from "fs";
+import { bucket } from "../config/gcs.js";
 
 const router = express.Router();
 
-
+// Use memory storage to keep file in buffer before uploading to GCS
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, path.join(process.cwd(), "uploads"));
-    },
-    filename: function (req, file, cb) {
-      const unique = Date.now() + "-" + Math.round(Math.random() * 1e5);
-      cb(null, unique);  // store only the random name
-    }
-  })
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
 });
 
 
-router.get("/file-by-path", (req, res) => {
+
+router.get("/file-by-path", async (req, res) => {
   try {
     const fileName = req.query.p;      // stored DB filename ONLY
     const displayName = req.query.name || fileName;
 
     if (!fileName) return res.status(400).send("Missing filename");
 
-    const absolute = path.join(process.cwd(), "uploads", fileName);
-    console.log("Downloading:", absolute);
+    console.log("Generating signed URL for:", fileName);
 
-    if (!fs.existsSync(absolute)) {
-      return res.status(404).send("File not found");
-    }
+    const options = {
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      promptSaveAs: displayName // Optional: hints the browser to save as this name
+    };
 
-    return res.download(absolute, displayName); // clean, automatic download
+    const [url] = await bucket.file(fileName).getSignedUrl(options);
+
+    // Redirect the user to the signed URL
+    res.redirect(url);
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");
@@ -42,6 +42,7 @@ router.get("/file-by-path", (req, res) => {
 });
 
 /* ------------------------
+   FETCH MY SUBMISSIONS
    FETCH MY SUBMISSIONS
 ------------------------- */
 router.get("/mysubmissions", async (req, res) => {
@@ -76,7 +77,7 @@ router.get("/mysubmissions", async (req, res) => {
       date: row.date
         ? new Date(row.date).toISOString().split("T")[0]
         : "N/A",
-      file: row.proof_document,     // stored filename
+      file: row.proof_document,     // stored filename (GCS object name)
       file_name: row.proof_filename, // original shown name
       status: "Submitted"
     }));
@@ -97,9 +98,27 @@ router.post("/submit", upload.single("file"), async (req, res) => {
     const submissionData = JSON.parse(req.body.payload);
     const userId = req.body.userId;
     const sectionCode = req.body.sectionCode;
-    console.log(req.file)
-    const fileStoredName = req.file ? req.file.filename : null;
+
+    let fileStoredName = null;
     const fileOriginalName = req.file ? req.file.originalname : null;
+
+    // Upload to GCS if file exists
+    if (req.file) {
+      const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e5) + "-" + fileOriginalName.replace(/\s+/g, '_');
+      const blob = bucket.file(uniqueName);
+      const blobStream = blob.createWriteStream({
+        resumable: false,
+      });
+
+      await new Promise((resolve, reject) => {
+        blobStream.on("error", (err) => reject(err));
+        blobStream.on("finish", () => {
+          fileStoredName = uniqueName;
+          resolve();
+        });
+        blobStream.end(req.file.buffer);
+      });
+    }
 
     /* ----------- INSERTS ---------- */
     if (sectionCode === "6.1.1.1") {
@@ -215,13 +234,32 @@ router.delete("/:code/:id", async (req, res) => {
     else if (code === "6.1.4.1") tableName = "mooc_course";
     else return res.status(400).json({ error: "Invalid section code" });
 
+    // First get the file name to delete from GCS
+    const fileResult = await db.query(
+      `SELECT proof_document FROM ${tableName} WHERE id=$1 AND faculty_id=$2`,
+      [id, userId]
+    );
+
+    if (fileResult.rowCount === 0) {
+      return res.status(404).json({ error: "Submission not found or unauthorized" });
+    }
+
+    const fileName = fileResult.rows[0].proof_document;
+
     const result = await db.query(
       `DELETE FROM ${tableName} WHERE id=$1 AND faculty_id=$2 RETURNING *`,
       [id, userId]
     );
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Submission not found or unauthorized" });
+    // Delete from GCS if exists
+    if (fileName) {
+      try {
+        await bucket.file(fileName).delete();
+        console.log(`Deleted GCS file: ${fileName}`);
+      } catch (gcsErr) {
+        console.error("Failed to delete file from GCS:", gcsErr);
+        // Don't fail the request if GCS delete fails, but log it
+      }
     }
 
     res.json({ message: "Deleted successfully" });
