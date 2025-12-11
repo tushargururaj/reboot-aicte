@@ -137,16 +137,29 @@ const AIUploadPage = ({ user, onLogout }) => {
         isProcessingRef.current = true;
 
         try {
-            const formData = new FormData();
-            formData.append('certificate', file);
-
             setCurrentStep(3); // AI Analysis
 
-            // Call real API
-            const response = await axios.post('/api/ai-upload/process', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
+            // 1. Get Signed URL
+            setProcessingStep('Preparing secure upload...');
+            const { data: { uploadUrl, gcsPath } } = await axios.get('/api/ai-upload/upload-url', {
+                params: {
+                    filename: file.name,
+                    contentType: file.type || 'application/octet-stream'
                 }
+            });
+
+            // 2. Upload directly to GCS
+            setProcessingStep('Uploading file to cloud...');
+            await axios.put(uploadUrl, file, {
+                headers: {
+                    'Content-Type': file.type || 'application/octet-stream'
+                }
+            });
+
+            // 3. Process the uploaded file
+            setProcessingStep('Processing document...');
+            const response = await axios.post('/api/ai-upload/process', {
+                gcsPath: gcsPath
             });
 
             if (response.data.success) {
