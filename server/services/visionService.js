@@ -22,12 +22,33 @@ const client = new vision.ImageAnnotatorClient({
  * Extract text from an image using Google Cloud Vision OCR
  * Much more accurate than Tesseract for printed documents
  */
-export async function extractTextWithVision(imagePath) {
+/**
+ * Extract text from an image using Google Cloud Vision OCR
+ * Supports file path, Buffer, or GCS URI
+ */
+export async function extractTextWithVision(imageSource) {
     try {
-        console.log('Starting Google Cloud Vision OCR for:', imagePath);
+        console.log('Starting Google Cloud Vision OCR...');
+
+        let request = {};
+
+        if (Buffer.isBuffer(imageSource)) {
+            request = {
+                image: { content: imageSource.toString('base64') }
+            };
+        } else if (typeof imageSource === 'string' && imageSource.startsWith('gs://')) {
+            request = {
+                image: { source: { imageUri: imageSource } }
+            };
+        } else {
+            // Assume file path
+            request = {
+                image: { source: { filename: imageSource } }
+            };
+        }
 
         // Perform text detection
-        const [result] = await client.textDetection(imagePath);
+        const [result] = await client.textDetection(request);
         const detections = result.textAnnotations;
 
         if (!detections || detections.length === 0) {
@@ -48,7 +69,7 @@ export async function extractTextWithVision(imagePath) {
         return {
             success: true,
             text: fullText.trim(),
-            confidence: 0.95, // Vision API is generally very accurate
+            confidence: 0.95,
             wordCount: fullText.split(/\s+/).length,
             source: 'google-vision'
         };
@@ -61,24 +82,28 @@ export async function extractTextWithVision(imagePath) {
 
 /**
  * Extract text from PDF using Google Cloud Vision
- * Uses document text detection for better structure
+ * Supports file path, Buffer, or GCS URI
  */
-export async function extractTextFromPDFWithVision(pdfPath) {
+export async function extractTextFromPDFWithVision(pdfSource) {
     try {
-        console.log('Starting Google Cloud Vision PDF extraction for:', pdfPath);
+        console.log('Starting Google Cloud Vision PDF extraction...');
 
-        // Read PDF file as base64
-        const pdfBuffer = fs.readFileSync(pdfPath);
-        const base64Content = pdfBuffer.toString('base64');
+        let inputConfig = { mimeType: 'application/pdf' };
 
-        // Proper request structure for PDF files (synchronous for small files)
+        if (Buffer.isBuffer(pdfSource)) {
+            inputConfig.content = pdfSource.toString('base64');
+        } else if (typeof pdfSource === 'string' && pdfSource.startsWith('gs://')) {
+            inputConfig.gcsSource = { uri: pdfSource };
+        } else {
+            // File path
+            const pdfBuffer = fs.readFileSync(pdfSource);
+            inputConfig.content = pdfBuffer.toString('base64');
+        }
+
         const request = {
             requests: [
                 {
-                    inputConfig: {
-                        content: base64Content,
-                        mimeType: 'application/pdf'
-                    },
+                    inputConfig: inputConfig,
                     features: [{ type: 'DOCUMENT_TEXT_DETECTION' }]
                 }
             ]
@@ -117,10 +142,6 @@ export async function extractTextFromPDFWithVision(pdfPath) {
 
     } catch (error) {
         console.error('Google Vision PDF error:', error.message);
-        // Map common errors to friendly messages
-        if (error.message.includes('not a function')) {
-            console.error('CRITICAL: batchAnnotateFiles method missing on client.');
-        }
         throw error;
     }
 }
