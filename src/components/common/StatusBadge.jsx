@@ -1,4 +1,4 @@
-// src/components/StatusBadge.jsx
+// src/components/common/StatusBadge.jsx
 import React from "react";
 
 const getStatusClasses = (status) => {

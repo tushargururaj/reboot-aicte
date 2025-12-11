@@ -1,6 +1,6 @@
-// src/pages/SimpleFacultyPage.jsx
+// src/pages/faculty/SimplePage.jsx
 import React from "react";
-import FacultyLayout from "../components/FacultyLayout"; // ASSUMED component
+import FacultyLayout from "../../components/faculty/FacultyLayout"; // Faculty layout component
 import { useNavigate } from "react-router-dom";
 
 /**

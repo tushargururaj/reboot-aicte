@@ -1,7 +1,7 @@
-// src/pages/AdminDashboard.jsx
+// src/pages/admin/Dashboard.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import AdminLayout from "../adm_components/AdminLayout.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 
 const AdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();

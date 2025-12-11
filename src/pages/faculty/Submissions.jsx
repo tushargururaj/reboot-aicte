@@ -1,15 +1,15 @@
-// src/pages/MySubmissions.jsx
+// src/pages/faculty/Submissions.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import StatusBadge from "../components/StatusBadge";
-import EmptyState from "../components/EmptyState";
-import FacultySidebar from "../components/FacultySidebar";
+import Header from "../../components/common/Header";
+import StatusBadge from "../../components/common/StatusBadge";
+import EmptyState from "../../components/common/EmptyState";
+import FacultySidebar from "../../components/faculty/FacultySidebar";
 import {
   getDefaultFacultyNavItems,
   getProfileNavItem,
   getHelpNavItem,
-} from "../utils/facultyNav";
+} from "../../utils/facultyNav";
 
 const MySubmissions = ({ user, onLogout }) => {
   const navigate = useNavigate();

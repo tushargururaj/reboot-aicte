@@ -1,9 +1,9 @@
 // src/pages/forms/ProfessionalSocietyForm.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import FormLayout from "../../components/FormLayout";
+import FormLayout from "../../components/faculty/FormLayout";
 import { saveDraft, commonHandleSubmit } from "../../utils/submissionsClient";
-import SubmissionResultModal from "../../components/SubmissionResultModal";
+import SubmissionResultModal from "../../components/common/SubmissionResultModal";
 import { getAcademicYearOptions } from "../../utils/dateUtils";
 
 // small helpers

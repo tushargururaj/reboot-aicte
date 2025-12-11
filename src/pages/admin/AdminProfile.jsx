@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // FIX: Explicit relative path to AdminLayout
-import AdminLayout from "../../adm_components/AdminLayout.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 
 const AdminProfile = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Mock data for the Admin profile state
   const [profileData, setProfileData] = useState({
     name: user?.name || "Chief Administrator",
@@ -17,24 +17,24 @@ const AdminProfile = ({ user, onLogout }) => {
     lastLogin: "2025-11-20 08:30 AM",
     accessLevel: "Full System",
   });
-  
+
   const handleSave = (e) => {
     e.preventDefault();
-    console.log("Admin Profile saved! (API call placeholder)", profileData); 
+    console.log("Admin Profile saved! (API call placeholder)", profileData);
     setIsEditing(false);
   };
-  
+
   const InfoField = ({ label, value, name, isEditing, onChange }) => (
     <div className="p-4 border-b border-gray-100">
       <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
       {isEditing ? (
-        <input 
+        <input
           type="text"
           name={name}
-          value={value} 
+          value={value}
           onChange={onChange}
           className="mt-1 w-full text-base font-medium text-slate-900 rounded-lg border border-red-200 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-300 transition"
-          disabled={name === 'email' || name === 'role'} 
+          disabled={name === 'email' || name === 'role'}
         />
       ) : (
         <p className="mt-1 text-base font-medium text-slate-900">{value}</p>
@@ -45,7 +45,7 @@ const AdminProfile = ({ user, onLogout }) => {
   return (
     <AdminLayout user={user} onLogout={onLogout} title="Your Profile" activeKey="profile">
       <div className="max-w-4xl mx-auto flex flex-col gap-6">
-        
+
         {/* Back Button */}
         <button
           onClick={() => navigate("/admin")}
@@ -86,44 +86,44 @@ const AdminProfile = ({ user, onLogout }) => {
           <div className="bg-white rounded-xl shadow-lg border border-slate-200 divide-y divide-gray-100 overflow-hidden">
             <h3 className="px-6 py-4 text-lg font-semibold bg-slate-50 text-slate-700 border-b">Access and Contact Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2">
-              <InfoField 
-                label="Admin Name" 
+              <InfoField
+                label="Admin Name"
                 name="name"
-                value={profileData.name} 
+                value={profileData.name}
                 isEditing={isEditing}
                 onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
               />
-              <InfoField 
-                label="System Role" 
+              <InfoField
+                label="System Role"
                 name="role"
-                value={profileData.role} 
+                value={profileData.role}
                 isEditing={isEditing}
                 onChange={(e) => setProfileData({ ...profileData, role: e.target.value })}
               />
-              <InfoField 
-                label="Official Email" 
+              <InfoField
+                label="Official Email"
                 name="email"
-                value={profileData.email} 
+                value={profileData.email}
                 isEditing={isEditing}
-                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} 
+                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
               />
-              <InfoField 
-                label="Phone Number" 
+              <InfoField
+                label="Phone Number"
                 name="phone"
-                value={profileData.phone} 
+                value={profileData.phone}
                 isEditing={isEditing}
                 onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
               />
-              <InfoField 
-                label="Last System Login (Mock)" 
+              <InfoField
+                label="Last System Login (Mock)"
                 name="lastLogin"
-                value={profileData.lastLogin} 
+                value={profileData.lastLogin}
                 isEditing={false}
               />
-              <InfoField 
-                label="Access Level" 
+              <InfoField
+                label="Access Level"
                 name="accessLevel"
-                value={profileData.accessLevel} 
+                value={profileData.accessLevel}
                 isEditing={false}
               />
             </div>

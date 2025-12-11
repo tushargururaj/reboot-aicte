@@ -2,9 +2,9 @@
 // src/pages/forms/FdpResourcePersonForm.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import FormLayout from "../../components/FormLayout";
+import FormLayout from "../../components/faculty/FormLayout";
 import { saveDraft, commonHandleSubmit } from "../../utils/submissionsClient";
-import SubmissionResultModal from "../../components/SubmissionResultModal";
+import SubmissionResultModal from "../../components/common/SubmissionResultModal";
 import { getAcademicYearOptions, calculateDurationDays } from "../../utils/dateUtils";
 
 

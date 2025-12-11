@@ -1,4 +1,4 @@
-// src/pages/Login.jsx
+// src/pages/auth/Login.jsx
 import React, { useState } from "react";
 
 const Login = ({ onLogin, switchToSignup }) => {

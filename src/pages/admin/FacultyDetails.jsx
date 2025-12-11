@@ -1,7 +1,7 @@
 // src/pages/admin/FacultyDetails.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import AdminLayout from "../../adm_components/AdminLayout.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 import { getFacultyById, getFacultySubmissions, deleteFaculty, deleteSubmission } from "../../utils/adminClient.js";
 
 const FacultyDetails = ({ user, onLogout }) => {

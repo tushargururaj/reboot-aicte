@@ -9,9 +9,9 @@
 //  5. Show a modal with success / error / info feedback
 import React, { useEffect, useState } from "react"; // useState: local form + UI flags, useEffect: load existing draft
 import { useNavigate } from "react-router-dom";
-import FormLayout from "../../components/FormLayout"; // shared page shell (header, back, logout)
+import FormLayout from "../../components/faculty/FormLayout";
 import { saveDraft, commonHandleSubmit } from "../../utils/submissionsClient"; // helpers for drafts + submission flow
-import SubmissionResultModal from "../../components/SubmissionResultModal"; // reusable feedback modal
+import SubmissionResultModal from "../../components/common/SubmissionResultModal";
 import { getAcademicYearOptions } from "../../utils/dateUtils";
 
 

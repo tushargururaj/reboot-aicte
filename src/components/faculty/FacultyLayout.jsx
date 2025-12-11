@@ -1,7 +1,7 @@
-// src/components/FacultyLayout.jsx
+// src/components/faculty/FacultyLayout.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "./Header";
+import Header from "../common/Header";
 
 const navItems = [
   { key: "dashboard", label: "Dashboard", path: "/faculty" },
@@ -35,10 +35,9 @@ const FacultyLayout = ({ user, activeKey, children, onLogout }) => {
                 key={item.key}
                 onClick={() => navigate(item.path)}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition
-                  ${
-                    isActive
-                      ? "bg-indigo-600/80 text-white shadow-sm"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                  ${isActive
+                    ? "bg-indigo-600/80 text-white shadow-sm"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
                   }`}
               >
                 <span>{item.label}</span>

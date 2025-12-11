@@ -1,4 +1,4 @@
-// src/pages/Signup.jsx
+// src/pages/auth/Signup.jsx
 import React, { useState } from "react";
 const ADMIN_KEY = "shradhaforever";
 

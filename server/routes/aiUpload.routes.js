@@ -3,6 +3,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import db from '../config/db.js';
 import { processCertificateFile } from '../services/ocrService.js';
 import { analyzeCertificateWithAI, getSupportedTypes } from '../services/ai.service.js';
@@ -43,15 +44,7 @@ const upload = multer({
     }
 });
 
-/**
- * POST /api/ai-upload/process
- * Upload and process certificate with OCR + AI
- * Now uses intelligent content-based detection (no filename dependency)
- */
-// ... existing imports ...
-import { bucket } from '../config/gcs.js'; // Import bucket
-
-// ... existing multer config ...
+import { bucket } from '../config/gcs.js';
 
 /**
  * GET /api/ai-upload/upload-url
@@ -306,8 +299,8 @@ router.post('/confirm', async (req, res) => {
             // Professional Memberships
             result = await db.query(
                 `INSERT INTO prof_memberships 
-                 (faculty_id, academic_year, society_name, grade_level, brief_description, proof_document, proof_filename, ai_extracted)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, true) RETURNING *`,
+                 (faculty_id, academic_year, society_name, grade_level, brief_description, proof_document, proof_filename)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
                 [
                     userId,
                     data.academic_year || getCurrentAcademicYear(),
@@ -322,8 +315,8 @@ router.post('/confirm', async (req, res) => {
             // Resource Person
             result = await db.query(
                 `INSERT INTO resource_person 
-                 (faculty_id, academic_year, role, event_name, date, event_type, mode, duration_days, organizer, location, brief_description, proof_document, proof_filename, ai_extracted)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true) RETURNING *`,
+                 (faculty_id, academic_year, role, event_name, date, event_type, mode, duration_days, organizer, location, brief_description, proof_document, proof_filename)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
                 [
                     userId,
                     data.academic_year || getCurrentAcademicYear(),
@@ -344,8 +337,8 @@ router.post('/confirm', async (req, res) => {
             // FDP
             result = await db.query(
                 `INSERT INTO fdp
-                 (faculty_id, academic_year, level, program_name, date, event_type, mode, duration_days, organizer, location, certificate_number, brief_reflection, proof_document, proof_filename, ai_extracted)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, true) RETURNING *`,
+                 (faculty_id, academic_year, level, program_name, date, event_type, mode, duration_days, organizer, location, certificate_number, brief_reflection, proof_document, proof_filename)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
                 [
                     userId,
                     data.academic_year || getCurrentAcademicYear(),
@@ -367,8 +360,8 @@ router.post('/confirm', async (req, res) => {
             // MOOC Course
             result = await db.query(
                 `INSERT INTO mooc_course
-                 (faculty_id, academic_year, course_name, duration_weeks, grade_obtained, offering_institute, remarks, proof_document, proof_filename, ai_extracted)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true) RETURNING *`,
+                 (faculty_id, academic_year, course_name, duration_weeks, grade_obtained, offering_institute, remarks, proof_document, proof_filename)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
                 [
                     userId,
                     data.academic_year || getCurrentAcademicYear(),

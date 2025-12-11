@@ -1,13 +1,13 @@
-// src/pages/FacultyDashboard.jsx
+// src/pages/faculty/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import FacultySidebar from "../components/FacultySidebar";
+import Header from "../../components/common/Header";
+import FacultySidebar from "../../components/faculty/FacultySidebar";
 import {
   getDefaultFacultyNavItems,
   getProfileNavItem,
   getHelpNavItem,
-} from "../utils/facultyNav";
+} from "../../utils/facultyNav";
 
 const FacultyDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();

@@ -1,4 +1,4 @@
-// src/components/Header.jsx
+// src/components/common/Header.jsx
 import React from "react";
 
 const Header = ({ title, user, onLogout, onMenuClick }) => {
