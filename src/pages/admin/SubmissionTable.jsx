@@ -329,11 +329,11 @@ const SubmissionTable = ({ user, onLogout }) => {
                                     <thead className="bg-gradient-to-r from-yellow-50 to-slate-100 text-slate-700">
                                         <tr>
                                             {columns.map((col) => (
-                                                <th key={col.key} className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider border-b border-slate-200">
+                                                <th key={col.key} className="px-3 sm:px-6 py-4 sm:py-5 text-left text-xs sm:text-sm font-bold uppercase tracking-wider border-b border-slate-200">
                                                     {col.label}
                                                 </th>
                                             ))}
-                                            <th className="px-6 py-5 text-right text-sm font-bold uppercase tracking-wider border-b border-slate-200">Proof</th>
+                                            <th className="px-3 sm:px-6 py-4 sm:py-5 text-right text-xs sm:text-sm font-bold uppercase tracking-wider border-b border-slate-200">Proof</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-slate-100">
@@ -349,19 +349,23 @@ const SubmissionTable = ({ user, onLogout }) => {
                                             submissions.map((sub, idx) => (
                                                 <tr key={sub.id} className="hover:bg-yellow-50/30 transition-colors duration-200">
                                                     {columns.map((col) => (
-                                                        <td key={col.key} className="px-6 py-4 whitespace-nowrap text-base text-slate-600">
+                                                        <td key={col.key} className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm sm:text-base text-slate-600">
                                                             {col.render(sub, idx)}
                                                         </td>
                                                     ))}
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
+                                                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right font-medium">
                                                         <a
                                                             href={sub.docUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-block px-4 py-1.5 rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-xs font-bold transition-colors"
+                                                            className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-1.5 rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-xs font-bold transition-colors"
                                                             download
+                                                            title="Download Proof"
                                                         >
-                                                            Download Proof
+                                                            <span className="sm:hidden">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                                            </span>
+                                                            <span className="hidden sm:inline">Download Proof</span>
                                                         </a>
                                                     </td>
                                                 </tr>

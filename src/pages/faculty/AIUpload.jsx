@@ -6,24 +6,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
 // Components
-import Header from '../../components/common/Header';
-import FacultySidebar from '../../components/faculty/FacultySidebar';
+import FacultyLayout from '../../components/faculty/FacultyLayout';
 import ChatMessage from '../../components/faculty/ChatMessage';
 import CertificatePreview from '../../components/faculty/CertificatePreview';
 import ExtractedDataCard from '../../components/faculty/ExtractedDataCard';
 import ProgressSteps from '../../components/common/ProgressSteps';
 import TypingIndicator from '../../components/common/TypingIndicator';
-import {
-    getDefaultFacultyNavItems,
-    getProfileNavItem,
-    getHelpNavItem,
-} from '../../utils/facultyNav';
 
 const AIUploadPage = ({ user, onLogout }) => {
     const navigate = useNavigate();
-    const navItems = getDefaultFacultyNavItems(navigate, 'ai-upload');
-    const profileItem = getProfileNavItem(navigate, false);
-    const helpItem = getHelpNavItem(navigate);
+
 
     const [messages, setMessages] = useState([
         {
@@ -505,355 +497,333 @@ const AIUploadPage = ({ user, onLogout }) => {
     }
 
     return (
-        <div className="h-screen flex overflow-hidden" style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #f8f2ff 100%)" }}>
-            {/* Sidebar */}
-            <FacultySidebar
-                navItems={navItems}
-                profileItem={profileItem}
-                helpItem={helpItem}
-                onLogout={onLogout}
-            />
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col md:ml-80 h-full overflow-hidden">
-                {/* Header */}
-                <div className="flex-shrink-0">
-                    <Header title="AI Certificate Upload" user={user} onLogout={onLogout} />
-                </div>
-
-                {/* Main Area */}
-                <main className="flex-1 px-4 sm:px-8 py-6 overflow-y-auto">
-                    <div className="max-w-7xl mx-auto w-full">
-                        {/* AI Upload Info */}
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-5 mb-8 rounded-xl shadow-md">
-                            <div className="flex items-start">
-                                <Sparkles className="w-6 h-6 text-green-600 mt-1 mr-4 flex-shrink-0" />
-                                <div>
-                                    <h3 className="text-base font-bold text-green-900 mb-1">AI-Powered Upload</h3>
-                                    <p className="text-base text-green-800 leading-relaxed">
-                                        Upload any certificate (FDP, MOOC, Membership, Resource Person) and AI will automatically detect the type and extract all details. No need to rename files - just upload!
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Progress Steps */}
-                        {currentStep > 0 && !showSuccess && (
-                            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-purple-100">
-                                <ProgressSteps currentStep={currentStep} />
-                            </div>
-                        )}
-
-                        {/* Main Content Grid */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8" style={{ minHeight: 'calc(100vh - 280px)' }}>
-                            {/* Left: AI Chat Interface - ENTIRE AREA IS DROPZONE */}
-                            <div
-                                {...getRootProps()}
-                                className={`flex-1 flex flex-col bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all relative ${isDragActive ? 'border-purple-500 ring-4 ring-purple-100 scale-[1.01]' : 'border-white'
-                                    }`}
-                            >
-                                {/* ... existing chat UI ... */}
-                                {/* Drag Overlay */}
-                                {isDragActive && (
-                                    <div className="absolute inset-0 z-50 bg-purple-500/10 backdrop-blur-sm flex items-center justify-center">
-                                        <div className="bg-white p-6 rounded-2xl shadow-2xl animate-bounce">
-                                            <Upload className="w-12 h-12 text-purple-600 mx-auto" />
-                                            <p className="font-bold text-purple-900 mt-2">Drop it here!</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Hidden Input for Dropzone */}
-                                <input {...getInputProps()} />
-
-                                {/* Chat Header */}
-                                <div className="p-6 bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center shrink-0">
-                                    <div className="flex items-center space-x-4">
-                                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
-                                            <Sparkles className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-xl font-bold text-white">AI Assistant</h2>
-                                            <p className="text-sm text-purple-100">Ready to help you upload</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Chat Messages */}
-                                <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-gradient-to-b from-gray-50 to-white">
-                                    {messages.map(msg => (
-                                        <ChatMessage
-                                            key={msg.id}
-                                            message={msg.text}
-                                            isUser={msg.isUser}
-                                            timestamp={msg.timestamp}
-                                        />
-                                    ))}
-
-                                    {/* Dynamic Processing Indicator */}
-                                    {isProcessing && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="flex items-center space-x-3"
-                                        >
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center p-1.5 shadow-md">
-                                                <div className="w-full h-full border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                                            </div>
-                                            <div className="bg-white border border-gray-200 px-4 py-2 rounded-xl rounded-tl-sm shadow-sm">
-                                                <p className="text-sm text-gray-600 font-medium animate-pulse">{processingStep || 'Thinking...'}</p>
-                                            </div>
-                                        </motion.div>
-                                    )}
-
-                                    {isTyping && !isProcessing && <TypingIndicator />}
-
-                                    {/* Retry/Reset Option */}
-                                    {uploadedFile && !isProcessing && !showSuccess && (
-                                        <div className="flex justify-center mt-4 pb-4">
-                                            <button
-                                                onClick={handleReset}
-                                                className="flex items-center space-x-2 px-5 py-2 bg-white border border-gray-200 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50 hover:text-purple-600 hover:border-purple-200 transition-all shadow-sm z-10 relative"
-                                            >
-                                                <RefreshCw className="w-4 h-4" />
-                                                <span>Start Over / New File</span>
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    <div ref={messagesEndRef} />
-                                </div>
-
-                                {/* Upload Zone - Bottom Area (Clickable) */}
-                                <div className="p-4 border-t border-gray-200 bg-gray-50">
-                                    <div
-                                        {...getClickableRootProps()}
-                                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all duration-300 ${isProcessing
-                                            ? 'opacity-50 cursor-not-allowed border-gray-300'
-                                            : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50/50'
-                                            }`}
-                                    >
-                                        <input {...getClickableInputProps()} disabled={isProcessing} />
-                                        <div className="flex items-center justify-center space-x-3">
-                                            <Upload className="w-6 h-6 text-purple-400" />
-                                            <div className="text-left flex-1">
-                                                <p className="text-sm font-bold text-gray-800">
-                                                    {uploadedFile
-                                                        ? 'Drag any file anywhere to replace'
-                                                        : 'Drag & drop anywhere or click here'
-                                                    }
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    JPG, PNG, PDF (Max 10MB)
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Camera Button */}
-                                <div className="px-4 pb-4 bg-gray-50 flex justify-center">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            startCamera();
-                                        }}
-                                        disabled={isProcessing}
-                                        className="flex items-center space-x-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium shadow-sm"
-                                    >
-                                        <Camera className="w-4 h-4" />
-                                        <span>Scan Document with Camera</span>
-                                    </button>
-                                </div>
-
-                                {/* Chat Input (when file uploaded) */}
-                                {uploadedFile && (
-                                    <div className="p-4 bg-white border-t border-gray-100">
-                                        <div className="flex items-center space-x-3">
-                                            <input
-                                                type="text"
-                                                value={inputMessage}
-                                                onChange={(e) => setInputMessage(e.target.value)}
-                                                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                                placeholder="Type your message..."
-                                                className="flex-1 px-5 py-3 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                                disabled={isTyping}
-                                            />
-                                            <button
-                                                onClick={handleSendMessage}
-                                                disabled={!inputMessage.trim() || isTyping}
-                                                className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
-                                            >
-                                                <Send className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Right Panel - Preview & Extracted Data */}
-                            <div className="space-y-8">
-                                {/* Success State */}
-                                {showSuccess ? (
-                                    <div className="bg-white rounded-2xl shadow-xl p-10 flex flex-col items-center justify-center h-full min-h-[400px] border border-green-100">
-                                        <motion.div
-                                            initial={{ scale: 0, rotate: -180 }}
-                                            animate={{ scale: 1, rotate: 0 }}
-                                            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                                            className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mb-6"
-                                        >
-                                            <CheckCircle className="w-20 h-20 text-green-500" />
-                                        </motion.div>
-                                        <motion.h3
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                            className="text-3xl font-bold text-gray-800 mb-2"
-                                        >
-                                            Submission Saved!
-                                        </motion.h3>
-                                        <motion.p
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            transition={{ delay: 0.4 }}
-                                            className="text-gray-500 text-lg"
-                                        >
-                                            Redirecting to new upload...
-                                        </motion.p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* Certificate Preview */}
-                                        {uploadedFile && (
-                                            <CertificatePreview file={uploadedFile} fileUrl={fileUrl} />
-                                        )}
-
-                                        {/* Extracted Data */}
-                                        {extractedData && (
-                                            <div className="bg-white rounded-2xl shadow-2xl p-8 border border-purple-100">
-                                                {/* Table Name Badge */}
-                                                <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
-                                                    <div className="space-y-2">
-                                                        <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">TARGET DATABASE TABLE</p>
-                                                        {extractedData.sectionCode && (
-                                                            <p className="text-lg font-bold text-indigo-900">
-                                                                Table No. {extractedData.sectionCode}
-                                                            </p>
-                                                        )}
-                                                        <p className="text-base text-gray-700">
-                                                            Database: <span className="font-mono font-semibold text-indigo-800">{extractedData.tableName}</span>
-                                                        </p>
-                                                        <p className="text-base text-gray-700">
-                                                            Type: <span className="font-semibold text-gray-900">{extractedData.certificateType}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center space-x-3 mb-6">
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
-                                                        <CheckCircle className="w-6 h-6 text-white" />
-                                                    </div>
-                                                    <h3 className="text-2xl font-bold text-gray-900">Extracted Information</h3>
-                                                </div>
-                                                <div className="space-y-4">
-                                                    {Object.entries(extractedData.extracted).filter(([key, value]) => {
-                                                        // Filter out null values and metadata fields
-                                                        return value !== null && key !== 'confidence_scores' && key !== 'certificate_type';
-                                                    }).map(([key, value]) => {
-                                                        const confidence = extractedData.fieldConfidence?.[key] || 0;
-                                                        const label = key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-
-                                                        return (
-                                                            <ExtractedDataCard
-                                                                key={key}
-                                                                field={key}
-                                                                value={String(value)}
-                                                                confidence={confidence}
-                                                                label={label}
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
-
-                                                {/* Action Buttons */}
-                                                <div className="mt-8 flex space-x-4">
-                                                    <button
-                                                        onClick={handleSaveSubmission}
-                                                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 transform hover:scale-105"
-                                                    >
-                                                        <CheckCircle className="w-6 h-6" />
-                                                        <span>Save Submission</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={handleStartOver}
-                                                        className="px-8 py-4 border-3 border-gray-300 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-md hover:shadow-lg"
-                                                    >
-                                                        Start Over
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* Empty State - Enhanced */}
-                                {!uploadedFile && !showSuccess && (
-                                    <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-purple-100 rounded-2xl p-10 text-center shadow-xl border-2 border-purple-200">
-                                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8">
-                                            <Sparkles className="w-20 h-20 mx-auto mb-6 text-purple-600 animate-pulse" />
-                                            <h3 className="text-2xl font-bold text-gray-900 mb-3">Ready to Upload</h3>
-                                            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                                                Upload your certificate on the left to see how AI would extract all the details automatically.
-                                            </p>
-                                            <div className="bg-white rounded-xl p-6 text-left shadow-md">
-                                                <p className="text-sm font-bold text-purple-700 mb-3 uppercase tracking-wide">What this demo shows:</p>
-                                                <ul className="text-base text-gray-700 space-y-2">
-                                                    <li className="flex items-start">
-                                                        <span className="text-purple-500 mr-2">•</span>
-                                                        <span>ChatGPT-like conversational interface</span>
-                                                    </li>
-                                                    <li className="flex items-start">
-                                                        <span className="text-purple-500 mr-2">•</span>
-                                                        <span>Automatic data extraction from certificates</span>
-                                                    </li>
-                                                    <li className="flex items-start">
-                                                        <span className="text-purple-500 mr-2">•</span>
-                                                        <span>Confidence scoring for each field</span>
-                                                    </li>
-                                                    <li className="flex items-start">
-                                                        <span className="text-purple-500 mr-2">•</span>
-                                                        <span>Interactive review before submission</span>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Debug Logs Box */}
-                                {debugLogs.length > 0 && (
-                                    <div className="mt-8 bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-700">
-                                        <div className="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
-                                            <div className="flex items-center space-x-2">
-                                                <AlertCircle className="w-4 h-4 text-yellow-400" />
-                                                <h3 className="text-sm font-mono font-bold text-gray-200">Server Debug Logs</h3>
-                                            </div>
-                                            <span className="text-xs text-gray-500 font-mono">{debugLogs.length} lines</span>
-                                        </div>
-                                        <div className="p-4 max-h-60 overflow-y-auto font-mono text-xs text-gray-300 space-y-1">
-                                            {debugLogs.map((log, index) => (
-                                                <div key={index} className="border-b border-gray-800 pb-1 last:border-0">
-                                                    {log}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+        <>
+            <FacultyLayout activeKey="ai-upload" user={user} onLogout={onLogout} title="AI Certificate Upload">
+                <div className="max-w-7xl mx-auto w-full">
+                    {/* AI Upload Info */}
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-5 mb-8 rounded-xl shadow-md">
+                        <div className="flex items-start">
+                            <Sparkles className="w-6 h-6 text-green-600 mt-1 mr-4 flex-shrink-0" />
+                            <div>
+                                <h3 className="text-base font-bold text-green-900 mb-1">AI-Powered Upload</h3>
+                                <p className="text-base text-green-800 leading-relaxed">
+                                    Upload any certificate (FDP, MOOC, Membership, Resource Person) and AI will automatically detect the type and extract all details. No need to rename files - just upload!
+                                </p>
                             </div>
                         </div>
                     </div>
-                </main>
-            </div>
+
+                    {/* Progress Steps */}
+                    {currentStep > 0 && !showSuccess && (
+                        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-purple-100">
+                            <ProgressSteps currentStep={currentStep} />
+                        </div>
+                    )}
+
+                    {/* Main Content Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8 lg:min-h-[calc(100vh-280px)]">
+                        {/* Left: AI Chat Interface - ENTIRE AREA IS DROPZONE */}
+                        <div
+                            {...getRootProps()}
+                            className={`flex-1 flex flex-col bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all relative min-h-[500px] lg:min-h-0 ${isDragActive ? 'border-purple-500 ring-4 ring-purple-100 scale-[1.01]' : 'border-white'
+                                }`}
+                        >
+                            {/* Drag Overlay */}
+                            {isDragActive && (
+                                <div className="absolute inset-0 z-50 bg-purple-500/10 backdrop-blur-sm flex items-center justify-center">
+                                    <div className="bg-white p-6 rounded-2xl shadow-2xl animate-bounce">
+                                        <Upload className="w-12 h-12 text-purple-600 mx-auto" />
+                                        <p className="font-bold text-purple-900 mt-2">Drop it here!</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Hidden Input for Dropzone */}
+                            <input {...getInputProps()} />
+
+                            {/* Chat Header */}
+                            <div className="p-6 bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center shrink-0">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
+                                        <Sparkles className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white">AI Assistant</h2>
+                                        <p className="text-sm text-purple-100">Ready to help you upload</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Chat Messages */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-gradient-to-b from-gray-50 to-white">
+                                {messages.map(msg => (
+                                    <ChatMessage
+                                        key={msg.id}
+                                        message={msg.text}
+                                        isUser={msg.isUser}
+                                        timestamp={msg.timestamp}
+                                    />
+                                ))}
+
+                                {/* Dynamic Processing Indicator */}
+                                {isProcessing && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex items-center space-x-3"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center p-1.5 shadow-md">
+                                            <div className="w-full h-full border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                                        </div>
+                                        <div className="bg-white border border-gray-200 px-4 py-2 rounded-xl rounded-tl-sm shadow-sm">
+                                            <p className="text-sm text-gray-600 font-medium animate-pulse">{processingStep || 'Thinking...'}</p>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {isTyping && !isProcessing && <TypingIndicator />}
+
+                                {/* Retry/Reset Option */}
+                                {uploadedFile && !isProcessing && !showSuccess && (
+                                    <div className="flex justify-center mt-4 pb-4">
+                                        <button
+                                            onClick={handleReset}
+                                            className="flex items-center space-x-2 px-5 py-2 bg-white border border-gray-200 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50 hover:text-purple-600 hover:border-purple-200 transition-all shadow-sm z-10 relative"
+                                        >
+                                            <RefreshCw className="w-4 h-4" />
+                                            <span>Start Over / New File</span>
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            {/* Upload Zone - Bottom Area (Clickable) */}
+                            <div className="p-4 border-t border-gray-200 bg-gray-50">
+                                <div
+                                    {...getClickableRootProps()}
+                                    className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all duration-300 ${isProcessing
+                                        ? 'opacity-50 cursor-not-allowed border-gray-300'
+                                        : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50/50'
+                                        }`}
+                                >
+                                    <input {...getClickableInputProps()} disabled={isProcessing} />
+                                    <div className="flex items-center justify-center space-x-3">
+                                        <Upload className="w-6 h-6 text-purple-400" />
+                                        <div className="text-left flex-1">
+                                            <p className="text-sm font-bold text-gray-800">
+                                                {uploadedFile
+                                                    ? 'Drag any file anywhere to replace'
+                                                    : 'Drag & drop anywhere or click here'
+                                                }
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                JPG, PNG, PDF (Max 10MB)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Camera Button */}
+                            <div className="px-4 pb-4 bg-gray-50 flex justify-center">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        startCamera();
+                                    }}
+                                    disabled={isProcessing}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium shadow-sm"
+                                >
+                                    <Camera className="w-4 h-4" />
+                                    <span>Scan Document with Camera</span>
+                                </button>
+                            </div>
+
+                            {/* Chat Input (when file uploaded) */}
+                            {uploadedFile && (
+                                <div className="p-4 bg-white border-t border-gray-100">
+                                    <div className="flex items-center space-x-3">
+                                        <input
+                                            type="text"
+                                            value={inputMessage}
+                                            onChange={(e) => setInputMessage(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                            placeholder="Type your message..."
+                                            className="flex-1 px-5 py-3 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                            disabled={isTyping}
+                                        />
+                                        <button
+                                            onClick={handleSendMessage}
+                                            disabled={!inputMessage.trim() || isTyping}
+                                            className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                                        >
+                                            <Send className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Panel - Preview & Extracted Data */}
+                        <div className="space-y-8">
+                            {/* Success State */}
+                            {showSuccess ? (
+                                <div className="bg-white rounded-2xl shadow-xl p-10 flex flex-col items-center justify-center h-full min-h-[400px] border border-green-100">
+                                    <motion.div
+                                        initial={{ scale: 0, rotate: -180 }}
+                                        animate={{ scale: 1, rotate: 0 }}
+                                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                                        className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mb-6"
+                                    >
+                                        <CheckCircle className="w-20 h-20 text-green-500" />
+                                    </motion.div>
+                                    <motion.h3
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="text-3xl font-bold text-gray-800 mb-2"
+                                    >
+                                        Submission Saved!
+                                    </motion.h3>
+                                    <motion.p
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.4 }}
+                                        className="text-gray-500 text-lg"
+                                    >
+                                        Redirecting to new upload...
+                                    </motion.p>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Certificate Preview */}
+                                    {uploadedFile && (
+                                        <CertificatePreview file={uploadedFile} fileUrl={fileUrl} />
+                                    )}
+
+                                    {/* Extracted Data */}
+                                    {extractedData && (
+                                        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-purple-100">
+                                            {/* Table Name Badge */}
+                                            <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
+                                                <div className="space-y-2">
+                                                    <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">TARGET DATABASE TABLE</p>
+                                                    {extractedData.sectionCode && (
+                                                        <p className="text-lg font-bold text-indigo-900">
+                                                            Table No. {extractedData.sectionCode}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-base text-gray-700">
+                                                        Database: <span className="font-mono font-semibold text-indigo-800">{extractedData.tableName}</span>
+                                                    </p>
+                                                    <p className="text-base text-gray-700">
+                                                        Type: <span className="font-semibold text-gray-900">{extractedData.certificateType}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <ExtractedDataCard
+                                                data={extractedData.extracted}
+                                                confidence={extractedData.fieldConfidence}
+                                                missingFields={missingFields}
+                                                onUpdate={(field, value) => {
+                                                    setExtractedData(prev => ({
+                                                        ...prev,
+                                                        extracted: {
+                                                            ...prev.extracted,
+                                                            [field]: value
+                                                        }
+                                                    }));
+                                                    // Also remove from missing fields if updated
+                                                    if (missingFields.includes(field)) {
+                                                        setMissingFields(prev => prev.filter(f => f !== field));
+                                                    }
+                                                }}
+                                            />
+
+                                            {/* Action Buttons */}
+                                            <div className="mt-8 flex gap-4">
+                                                <button
+                                                    onClick={handleSaveSubmission}
+                                                    disabled={waitingForField || missingFields.length > 0}
+                                                    className={`flex-1 py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform hover:-translate-y-1 ${waitingForField || missingFields.length > 0
+                                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                        : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-green-200'
+                                                        }`}
+                                                >
+                                                    {waitingForField ? 'Fill Missing Fields...' : 'Confirm & Save Submission'}
+                                                </button>
+                                                <button
+                                                    onClick={handleStartOver}
+                                                    className="px-6 py-4 rounded-xl border-2 border-gray-200 text-gray-600 font-bold hover:bg-gray-50 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Empty State / Instructions */}
+                                    {!uploadedFile && !extractedData && (
+                                        <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-purple-100 rounded-2xl p-10 text-center shadow-xl border-2 border-purple-200">
+                                            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8">
+                                                <Sparkles className="w-20 h-20 mx-auto mb-6 text-purple-600 animate-pulse" />
+                                                <h3 className="text-2xl font-bold text-gray-900 mb-3">Ready to Upload</h3>
+                                                <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                                                    Upload your certificate on the left to see how AI would extract all the details automatically.
+                                                </p>
+                                                <div className="bg-white rounded-xl p-6 text-left shadow-md">
+                                                    <p className="text-sm font-bold text-purple-700 mb-3 uppercase tracking-wide">What this demo shows:</p>
+                                                    <ul className="text-base text-gray-700 space-y-2">
+                                                        <li className="flex items-start">
+                                                            <span className="text-purple-500 mr-2">•</span>
+                                                            <span>ChatGPT-like conversational interface</span>
+                                                        </li>
+                                                        <li className="flex items-start">
+                                                            <span className="text-purple-500 mr-2">•</span>
+                                                            <span>Automatic data extraction from certificates</span>
+                                                        </li>
+                                                        <li className="flex items-start">
+                                                            <span className="text-purple-500 mr-2">•</span>
+                                                            <span>Confidence scoring for each field</span>
+                                                        </li>
+                                                        <li className="flex items-start">
+                                                            <span className="text-purple-500 mr-2">•</span>
+                                                            <span>Interactive review before submission</span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Debug Logs Box */}
+                                    {debugLogs.length > 0 && (
+                                        <div className="mt-8 bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                            <div className="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
+                                                <div className="flex items-center space-x-2">
+                                                    <AlertCircle className="w-4 h-4 text-yellow-400" />
+                                                    <h3 className="text-sm font-mono font-bold text-gray-200">Server Debug Logs</h3>
+                                                </div>
+                                                <span className="text-xs text-gray-500 font-mono">{debugLogs.length} lines</span>
+                                            </div>
+                                            <div className="p-4 max-h-60 overflow-y-auto font-mono text-xs text-gray-300 space-y-1">
+                                                {debugLogs.map((log, index) => (
+                                                    <div key={index} className="border-b border-gray-800 pb-1 last:border-0">
+                                                        {log}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </FacultyLayout>
 
             {/* Camera Modal */}
             <AnimatePresence>
@@ -917,7 +887,7 @@ const AIUploadPage = ({ user, onLogout }) => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </>
     );
 };
 

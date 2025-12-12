@@ -40,6 +40,10 @@ const ProfessionalSocietyForm = ({ user, draft, onBack, onLogout, customSubmitHa
 
   const SECTION_CODE = "6.1.1.1";
 
+  useEffect(() => {
+    setAcademicYearOptions(getAcademicYearOptions());
+  }, []);
+
   // Handle Draft Data
   useEffect(() => {
     if (draft?.payload) setForm((prev) => ({ ...prev, ...draft.payload }));

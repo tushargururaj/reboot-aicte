@@ -1,15 +1,10 @@
 // src/pages/faculty/Submissions.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../../components/common/Header";
+
 import StatusBadge from "../../components/common/StatusBadge";
 import EmptyState from "../../components/common/EmptyState";
-import FacultySidebar from "../../components/faculty/FacultySidebar";
-import {
-  getDefaultFacultyNavItems,
-  getProfileNavItem,
-  getHelpNavItem,
-} from "../../utils/facultyNav";
+import FacultyLayout from "../../components/faculty/FacultyLayout";
 
 const MySubmissions = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -17,9 +12,6 @@ const MySubmissions = ({ user, onLogout }) => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navItems = getDefaultFacultyNavItems(navigate, "my-submissions");
-  const profileItem = getProfileNavItem(navigate, false);
-  const helpItem = getHelpNavItem(navigate);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -79,144 +71,137 @@ const MySubmissions = ({ user, onLogout }) => {
   };
 
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ backgroundImage: "linear-gradient(135deg, #f8f2ff 0%, #fff4ea 100%)" }}
-    >
-      <FacultySidebar
-        navItems={navItems}
-        profileItem={profileItem}
-        helpItem={helpItem}
-        onLogout={onLogout}
-      />
+    <FacultyLayout activeKey="my-submissions" user={user} onLogout={onLogout} title="My Submissions">
+      <div className="max-w-6xl mx-auto flex flex-col gap-6">
+        {/* Back Button */}
+        <button
+          type="button"
+          onClick={() => navigate("/faculty")}
+          className="inline-flex items-center gap-3 text-base text-indigo-700 hover:text-indigo-500 transition-colors mb-4 font-medium"
+        >
+          <span className="text-2xl">←</span>
+          <span>Back to Dashboard</span>
+        </button>
 
-      {/* RIGHT SIDE */}
-      <div className="flex-1 flex flex-col md:ml-80">
-        <Header title="My Submissions" user={user} onLogout={onLogout} />
+        <h2 className="text-4xl font-semibold text-slate-900">Submission History</h2>
 
-        <main className="flex-1 px-4 sm:px-8 py-6">
-          <div className="max-w-6xl mx-auto flex flex-col gap-6">
-            {/* Back Button */}
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-4 p-5 bg-white/90 rounded-2xl border border-indigo-100 shadow-md">
+          {statusOptions.map(status => (
             <button
-              type="button"
-              onClick={() => navigate("/faculty")}
-              className="inline-flex items-center gap-3 text-base text-indigo-700 hover:text-indigo-500 transition-colors mb-4 font-medium"
-            >
-              <span className="text-2xl">←</span>
-              <span>Back to Dashboard</span>
-            </button>
-
-            <h2 className="text-4xl font-semibold text-slate-900">Submission History</h2>
-
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 p-5 bg-white/90 rounded-2xl border border-indigo-100 shadow-md">
-              {statusOptions.map(status => (
-                <button
-                  key={status}
-                  onClick={() => setFilter(status)}
-                  className={`px-5 py-2.5 rounded-full text-base font-semibold transition-all duration-200 
+              key={status}
+              onClick={() => setFilter(status)}
+              className={`px-5 py-2.5 rounded-full text-base font-semibold transition-all duration-200 
                     ${filter === status ? "bg-indigo-600 text-white shadow-md" : "bg-gray-100 text-slate-600 hover:bg-gray-200"}`}
-                >
-                  {status} ({statusCounts[status] || 0})
-                </button>
-              ))}
-              <span className="ml-auto text-base text-slate-500 font-medium">Total Submissions: {submissions.length}</span>
-            </div>
+            >
+              {status} ({statusCounts[status] || 0})
+            </button>
+          ))}
+          <span className="ml-auto text-base text-slate-500 font-medium">Total Submissions: {submissions.length}</span>
+        </div>
 
-            {/* TABLE */}
-            {loading ? (
-              <div className="text-center py-10 text-slate-500">Loading submissions...</div>
-            ) : error ? (
-              <div className="text-center py-10 text-red-500">Error: {error}</div>
-            ) : filteredSubmissions.length > 0 ? (
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider w-16">S.No</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider max-w-xs">Contribution Title</th>
-                      <th className="px-6 py-4 hidden sm:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-4 hidden lg:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Date of Conduct</th>
-                      <th className="px-6 py-4 hidden md:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Year/Date</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600 uppercase tracking-wider">Action</th>
-                    </tr>
-                  </thead>
+        {/* TABLE */}
+        {loading ? (
+          <div className="text-center py-10 text-slate-500">Loading submissions...</div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-500">Error: {error}</div>
+        ) : filteredSubmissions.length > 0 ? (
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+            <div className="overflow-x-auto"> {/* Added for horizontal scroll on mobile */}
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs sm:text-sm font-semibold text-slate-600 uppercase tracking-wider w-12 sm:w-16">S.No</th>
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs sm:text-sm font-semibold text-slate-600 uppercase tracking-wider max-w-[120px] sm:max-w-xs">Contribution Title</th>
+                    <th className="px-6 py-4 hidden sm:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-4 hidden lg:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Date of Conduct</th>
+                    <th className="px-6 py-4 hidden md:table-cell text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Year/Date</th>
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs sm:text-sm font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                    <th className="px-3 sm:px-6 py-4 text-right text-xs sm:text-sm font-semibold text-slate-600 uppercase tracking-wider">Action</th>
+                  </tr>
+                </thead>
 
-                  <tbody className="bg-white divide-y divide-slate-100">
-                    {filteredSubmissions.map((submission, index) => (
-                      <tr key={submission.id} className="hover:bg-indigo-50/50 transition">
-                        {/* Serial Number */}
-                        <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-slate-500">{index + 1}</td>
+                <tbody className="bg-white divide-y divide-slate-100">
+                  {filteredSubmissions.map((submission, index) => (
+                    <tr key={submission.id} className="hover:bg-indigo-50/50 transition">
+                      {/* Serial Number */}
+                      <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-sm sm:text-base font-medium text-slate-500">{index + 1}</td>
 
-                        {/* Title with wrapping */}
-                        <td className="px-6 py-5 text-base font-semibold text-slate-900 max-w-xs break-words whitespace-normal">
-                          {submission.title}
-                        </td>
+                      {/* Title with wrapping */}
+                      <td className="px-3 sm:px-6 py-4 sm:py-5 text-sm sm:text-base font-semibold text-slate-900 max-w-[120px] sm:max-w-xs break-words whitespace-normal">
+                        {submission.title}
+                      </td>
 
-                        {/* Section Code / Type */}
-                        <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden sm:table-cell">{submission.code}</td>
+                      {/* Section Code / Type */}
+                      <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden sm:table-cell">{submission.code}</td>
 
-                        {/* Date of Conduct */}
-                        <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden lg:table-cell">
-                          {submission.date !== 'N/A' ? submission.date : '-'}
-                        </td>
+                      {/* Date of Conduct */}
+                      <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden lg:table-cell">
+                        {submission.date !== 'N/A' ? submission.date : '-'}
+                      </td>
 
-                        {/* Submission Year/Date (Proxy) */}
-                        <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden md:table-cell">
-                          {submission.academic_year || '-'}
-                        </td>
+                      {/* Submission Year/Date (Proxy) */}
+                      <td className="px-6 py-5 whitespace-nowrap text-base text-slate-500 hidden md:table-cell">
+                        {submission.academic_year || '-'}
+                      </td>
 
-                        <td className="px-6 py-5 whitespace-nowrap text-base"><StatusBadge status={submission.status} /></td>
+                      <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-sm sm:text-base"><StatusBadge status={submission.status} /></td>
 
-                        {/* Actions */}
-                        <td className="px-6 py-5 whitespace-nowrap text-right text-base font-semibold">
+                      {/* Actions */}
+                      <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-right text-sm sm:text-base font-semibold">
+                        <div className="flex items-center justify-end gap-2 sm:gap-4">
                           <button
                             onClick={() => {
                               const filePath = submission.file;
                               const fileName = submission.file_name;
-
-                              console.log("Downloading:", { filePath, fileName });
-
                               if (!filePath) return;
-
-                              window.location.href =
-                                `/api/submissions/file-by-path?p=${encodeURIComponent(filePath)}&name=${encodeURIComponent(fileName)}`;
+                              window.location.href = `/api/submissions/file-by-path?p=${encodeURIComponent(filePath)}&name=${encodeURIComponent(fileName)}`;
                             }}
-                            className={`transition ${submission.file
+                            className={`transition p-2 rounded-full hover:bg-indigo-50 ${submission.file
                               ? "text-indigo-600 hover:text-indigo-900"
                               : "opacity-50 cursor-not-allowed text-slate-400"
                               }`}
                             disabled={!submission.file}
+                            title="Download Proof"
                           >
-                            Download
+                            {/* Mobile Icon / Desktop Text */}
+                            <span className="sm:hidden">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            </span>
+                            <span className="hidden sm:inline">Download</span>
                           </button>
+
                           <button
                             onClick={() => handleDelete(submission.code, submission.id)}
-                            className="ml-6 text-red-500 hover:text-red-700 transition"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition"
+                            title="Delete Submission"
                           >
-                            Delete
+                            {/* Mobile Icon / Desktop Text */}
+                            <span className="sm:hidden">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </span>
+                            <span className="hidden sm:inline">Delete</span>
                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl shadow-lg border border-slate-200">
-                <EmptyState
-                  title={`No ${filter} Submissions Found`}
-                  description="Try clearing your filter or start a new submission."
-                  actionLabel="Start New Submission"
-                  onAction={() => navigate("/new-submission")}
-                />
-              </div>
-            )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </main>
+        ) : (
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200">
+            <EmptyState
+              title={`No ${filter} Submissions Found`}
+              description="Try clearing your filter or start a new submission."
+              actionLabel="Start New Submission"
+              onAction={() => navigate("/new-submission")}
+            />
+          </div>
+        )}
       </div>
-    </div>
+    </FacultyLayout>
   );
 };
 
