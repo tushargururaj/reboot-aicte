@@ -14,6 +14,10 @@ const MagicLinkPage = () => {
     const [linkData, setLinkData] = useState(null);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
+    // AI Auto-Fill Logic
+    const [showAIUpload, setShowAIUpload] = useState(false);
+    const [prefilledData, setPrefilledData] = useState(null);
+
     useEffect(() => {
         const verifyToken = async () => {
             try {
@@ -106,9 +110,7 @@ const MagicLinkPage = () => {
         );
     }
 
-    // AI Auto-Fill Logic
-    const [showAIUpload, setShowAIUpload] = useState(false);
-    const [prefilledData, setPrefilledData] = useState(null);
+
 
     const handleDataExtracted = (data) => {
         setPrefilledData(data);
