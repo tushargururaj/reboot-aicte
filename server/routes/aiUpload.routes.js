@@ -8,6 +8,7 @@ import db from '../config/db.js';
 import { processCertificateFile } from '../services/ocrService.js';
 import { analyzeCertificateWithAI, getSupportedTypes } from '../services/ai.service.js';
 import { bucket } from '../config/gcs.js';
+import jwtAuthMiddleware from '../middleware/jwtAuthmiddleware.js';
 
 const router = Router();
 
@@ -268,7 +269,7 @@ router.post('/process', (req, res, next) => {
  * Confirm and save the extracted data to database
  * Called after user reviews and optionally edits the extracted data
  */
-router.post('/confirm', async (req, res) => {
+router.post('/confirm', jwtAuthMiddleware, async (req, res) => {
     try {
         const { userId, sectionCode, data, filePath, originalFilename } = req.body;
 

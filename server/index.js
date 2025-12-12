@@ -41,7 +41,7 @@ app.get('/', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/submissions', jwtAuthMiddleware, submissionRoutes);
 
-app.use('/api/ai-upload', jwtAuthMiddleware, aiUploadRoutes);
+app.use('/api/ai-upload', aiUploadRoutes);
 // Public health check for AI upload
 app.get('/api/ai-upload-health', (req, res) => {
   res.json({ status: 'ok', service: 'AI Upload', timestamp: new Date().toISOString() });
