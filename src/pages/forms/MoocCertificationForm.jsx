@@ -19,7 +19,7 @@ const Select = ({ name, value, onChange, children }) => (
 );
 
 
-const MoocCertificationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName }) => {
+const MoocCertificationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData }) => {
   const navigate = useNavigate();
   // State declarations moved inside the component
   const [form, setForm] = useState({
@@ -46,7 +46,23 @@ const MoocCertificationForm = ({ user, draft, onBack, onLogout, customSubmitHand
     setAcademicYearOptions(getAcademicYearOptions());
   }, []);
 
+  // Handle Draft Data
   useEffect(() => { if (draft?.payload) setForm((p) => ({ ...p, ...draft.payload })); setDraftId(draft?.id || null); }, [draft]);
+
+  // Handle AI Prefilled Data
+  useEffect(() => {
+    if (prefilledData) {
+      setForm(prev => ({
+        ...prev,
+        academicYear: prefilledData.academic_year || prev.academicYear,
+        courseName: prefilledData.course_name || prev.courseName,
+        offeringInstitute: prefilledData.offering_institute || prev.offeringInstitute,
+        grade: prefilledData.grade || prev.grade,
+        weeks: prefilledData.duration_weeks ? String(prefilledData.duration_weeks) : prev.weeks
+      }));
+    }
+  }, [prefilledData]);
+
   const updateField = (field, value) => setForm((p) => ({ ...p, [field]: value }));
 
   const handleFileChange = (e) => setProofFile(e.target.files?.[0] || null);

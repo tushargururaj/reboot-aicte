@@ -32,7 +32,7 @@ const TextArea = ({ name, value, onChange, placeholder, rows = 3 }) => (
 );
 
 
-const FdpParticipationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName }) => {
+const FdpParticipationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData }) => {
   const navigate = useNavigate();
   // Form field state (initializing with defaults; facultyName pulled from logged-in user)
   const [form, setForm] = useState({
@@ -69,6 +69,22 @@ const FdpParticipationForm = ({ user, draft, onBack, onLogout, customSubmitHandl
     if (draft?.payload) setForm((p) => ({ ...p, ...draft.payload }));
     setDraftId(draft?.id || null);
   }, [draft]);
+
+  // Handle AI Prefilled Data
+  useEffect(() => {
+    if (prefilledData) {
+      setForm(prev => ({
+        ...prev,
+        academicYear: prefilledData.academic_year || prev.academicYear,
+        programTitle: prefilledData.program_name || prev.programTitle,
+        organizer: prefilledData.organizer || prev.organizer,
+        durationDays: prefilledData.duration_days ? String(prefilledData.duration_days) : prev.durationDays,
+        // Optional fields that might be extracted
+        location: prefilledData.location || prev.location,
+        date: prefilledData.date || prev.date
+      }));
+    }
+  }, [prefilledData]);
 
   // Simple helper to mutate a single field
   const updateField = (field, value) => setForm((p) => ({ ...p, [field]: value }));
