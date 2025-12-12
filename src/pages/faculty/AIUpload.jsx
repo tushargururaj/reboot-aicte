@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Sparkles, Send, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Upload, Sparkles, Send, CheckCircle, AlertCircle, RefreshCw, Camera, X, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
@@ -61,6 +61,68 @@ const AIUploadPage = ({ user, onLogout }) => {
     // Missing data handling state
     const [missingFields, setMissingFields] = useState([]);
     const [waitingForField, setWaitingForField] = useState(null);
+
+    // Camera State
+    const [showCamera, setShowCamera] = useState(false);
+    const [cameraStream, setCameraStream] = useState(null);
+    const [cameraError, setCameraError] = useState(null);
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+
+    const startCamera = async () => {
+        try {
+            setCameraError(null);
+            // Try environment first, fallback to user/default
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            } catch (err) {
+                console.warn("Environment camera failed, trying default", err);
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            }
+
+            setCameraStream(stream);
+            setShowCamera(true);
+        } catch (err) {
+            console.error("Camera error:", err);
+            setCameraError("Unable to access camera. Please ensure permissions are granted and you are using HTTPS (or localhost).");
+            setShowCamera(true);
+        }
+    };
+
+    // Effect to attach stream to video element
+    useEffect(() => {
+        if (showCamera && cameraStream && videoRef.current) {
+            videoRef.current.srcObject = cameraStream;
+            videoRef.current.play().catch(e => console.error("Play error:", e));
+        }
+    }, [showCamera, cameraStream]);
+
+    const stopCamera = () => {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            setCameraStream(null);
+        }
+        setShowCamera(false);
+    };
+
+    const captureImage = () => {
+        if (videoRef.current && canvasRef.current) {
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            const context = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const file = new File([blob], "scanned_document.jpg", { type: "image/jpeg" });
+                handleFileUpload([file]);
+                stopCamera();
+            }, 'image/jpeg', 0.95);
+        }
+    };
 
     // Dropzone configuration
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -589,6 +651,21 @@ const AIUploadPage = ({ user, onLogout }) => {
                                     </div>
                                 </div>
 
+                                {/* Camera Button */}
+                                <div className="px-4 pb-4 bg-gray-50 flex justify-center">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            startCamera();
+                                        }}
+                                        disabled={isProcessing}
+                                        className="flex items-center space-x-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium shadow-sm"
+                                    >
+                                        <Camera className="w-4 h-4" />
+                                        <span>Scan Document with Camera</span>
+                                    </button>
+                                </div>
+
                                 {/* Chat Input (when file uploaded) */}
                                 {uploadedFile && (
                                     <div className="p-4 bg-white border-t border-gray-100">
@@ -777,6 +854,69 @@ const AIUploadPage = ({ user, onLogout }) => {
                     </div>
                 </main>
             </div>
+
+            {/* Camera Modal */}
+            <AnimatePresence>
+                {showCamera && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+                    >
+                        <div className="bg-white rounded-2xl overflow-hidden max-w-2xl w-full shadow-2xl relative">
+                            {/* Header */}
+                            <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <Camera className="w-5 h-5 text-purple-600" />
+                                    Scan Document
+                                </h3>
+                                <button onClick={stopCamera} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+
+                            {/* Video Area */}
+                            <div className="relative bg-black aspect-video flex items-center justify-center overflow-hidden">
+                                {cameraError ? (
+                                    <div className="text-white text-center p-6">
+                                        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+                                        <p>{cameraError}</p>
+                                    </div>
+                                ) : (
+                                    <video
+                                        ref={videoRef}
+                                        autoPlay
+                                        playsInline
+                                        className="w-full h-full object-cover"
+                                        onLoadedMetadata={() => videoRef.current?.play()}
+                                    />
+                                )}
+                                <canvas ref={canvasRef} className="hidden" />
+                            </div>
+
+                            {/* Footer / Controls */}
+                            <div className="p-6 bg-gray-50 flex justify-center gap-4">
+                                <button
+                                    onClick={stopCamera}
+                                    className="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                {!cameraError && (
+                                    <button
+                                        onClick={captureImage}
+                                        className="px-8 py-2.5 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition-colors shadow-lg flex items-center gap-2"
+                                    >
+                                        <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
+                                        Capture & Upload
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

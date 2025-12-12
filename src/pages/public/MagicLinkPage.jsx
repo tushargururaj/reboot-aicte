@@ -4,6 +4,8 @@ import ProfessionalSocietyForm from "../forms/ProfessionalSocietyForm";
 import FdpResourcePersonForm from "../forms/FdpResourcePersonForm";
 import FdpParticipationForm from "../forms/FdpParticipationForm";
 import MoocCertificationForm from "../forms/MoocCertificationForm";
+import MagicAIUpload from "../../components/public/MagicAIUpload";
+import { Sparkles } from "lucide-react";
 
 const MagicLinkPage = () => {
     const { token } = useParams();
@@ -104,6 +106,16 @@ const MagicLinkPage = () => {
         );
     }
 
+    // AI Auto-Fill Logic
+    const [showAIUpload, setShowAIUpload] = useState(false);
+    const [prefilledData, setPrefilledData] = useState(null);
+
+    const handleDataExtracted = (data) => {
+        setPrefilledData(data);
+        setShowAIUpload(false);
+        // Optional: Show a toast or message
+    };
+
     // Render the appropriate form based on section code
     const renderForm = () => {
         const commonProps = {
@@ -117,7 +129,8 @@ const MagicLinkPage = () => {
                 return handleCustomSubmit(formData);
             },
             isMagicLink: true,
-            lockedName: linkData.facultyName
+            lockedName: linkData.facultyName,
+            prefilledData: prefilledData // Pass AI data
         };
 
         switch (linkData.sectionCode) {
@@ -158,6 +171,49 @@ const MagicLinkPage = () => {
                     </div>
 
                     <div className="p-6 md:p-10">
+                        {/* AI Auto-Fill Toggle */}
+                        {!showAIUpload && !prefilledData && (
+                            <div className="mb-8">
+                                <button
+                                    onClick={() => setShowAIUpload(true)}
+                                    className="w-full py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-dashed border-indigo-200 rounded-xl text-indigo-700 font-semibold hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 group"
+                                >
+                                    <div className="p-1.5 bg-indigo-200 rounded-lg group-hover:bg-indigo-300 transition-colors">
+                                        <Sparkles className="w-5 h-5 text-indigo-700" />
+                                    </div>
+                                    <span>Auto-fill form with AI (Upload Certificate)</span>
+                                </button>
+                            </div>
+                        )}
+
+                        {/* AI Upload Component */}
+                        {showAIUpload && (
+                            <MagicAIUpload
+                                onDataExtracted={handleDataExtracted}
+                                onClose={() => setShowAIUpload(false)}
+                            />
+                        )}
+
+                        {prefilledData && (
+                            <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between animate-fade-in">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-green-100 rounded-full">
+                                        <Sparkles className="w-4 h-4 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-green-800 font-semibold">Data Auto-Filled by AI</p>
+                                        <p className="text-green-600 text-xs">Please review the fields below.</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => { setPrefilledData(null); setShowAIUpload(true); }}
+                                    className="text-xs text-green-700 underline hover:text-green-900"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+                        )}
+
                         {renderForm()}
                     </div>
                 </div>

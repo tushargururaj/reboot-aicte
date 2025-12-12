@@ -22,7 +22,7 @@ const Select = ({ name, value, onChange, children }) => (
 );
 
 
-const ProfessionalSocietyForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName }) => {
+const ProfessionalSocietyForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData, ...props }) => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     facultyName: lockedName || user?.name || "",
@@ -40,14 +40,23 @@ const ProfessionalSocietyForm = ({ user, draft, onBack, onLogout, customSubmitHa
 
   const SECTION_CODE = "6.1.1.1";
 
-  useEffect(() => {
-    setAcademicYearOptions(getAcademicYearOptions());
-  }, []);
-
+  // Handle Draft Data
   useEffect(() => {
     if (draft?.payload) setForm((prev) => ({ ...prev, ...draft.payload }));
     setDraftId(draft?.id || null);
   }, [draft]);
+
+  // Handle AI Prefilled Data
+  useEffect(() => {
+    if (prefilledData) {
+      setForm(prev => ({
+        ...prev,
+        societyName: prefilledData.society_name || prev.societyName,
+        gradeOrPosition: prefilledData.membership_grade || prev.gradeOrPosition,
+        academicYear: prefilledData.academic_year || prev.academicYear
+      }));
+    }
+  }, [prefilledData]);
 
   const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
