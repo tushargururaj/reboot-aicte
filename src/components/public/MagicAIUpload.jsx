@@ -65,7 +65,7 @@ const MagicAIUpload = ({ onDataExtracted, onClose }) => {
             if (response.data.success) {
                 setProcessingStep('Extraction complete!');
                 // Pass extracted data back to parent
-                onDataExtracted(response.data.extracted, response.data.certificateType);
+                onDataExtracted(response.data.extracted, response.data.certificateType, file);
             } else {
                 throw new Error(response.data.error || 'Extraction failed');
             }

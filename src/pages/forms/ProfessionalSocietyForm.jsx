@@ -22,7 +22,7 @@ const Select = ({ name, value, onChange, children }) => (
 );
 
 
-const ProfessionalSocietyForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData, ...props }) => {
+const ProfessionalSocietyForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData, prefilledFile, ...props }) => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     facultyName: lockedName || user?.name || "",
@@ -60,7 +60,11 @@ const ProfessionalSocietyForm = ({ user, draft, onBack, onLogout, customSubmitHa
         academicYear: prefilledData.academic_year || prev.academicYear
       }));
     }
-  }, [prefilledData]);
+    // Handle Prefilled File
+    if (prefilledFile && !proofFile) {
+      setProofFile(prefilledFile);
+    }
+  }, [prefilledData, prefilledFile]);
 
   const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 

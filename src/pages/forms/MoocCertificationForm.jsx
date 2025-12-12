@@ -19,7 +19,7 @@ const Select = ({ name, value, onChange, children }) => (
 );
 
 
-const MoocCertificationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData }) => {
+const MoocCertificationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData, prefilledFile }) => {
   const navigate = useNavigate();
   // State declarations moved inside the component
   const [form, setForm] = useState({
@@ -61,7 +61,11 @@ const MoocCertificationForm = ({ user, draft, onBack, onLogout, customSubmitHand
         weeks: prefilledData.duration_weeks ? String(prefilledData.duration_weeks) : prev.weeks
       }));
     }
-  }, [prefilledData]);
+    // Handle Prefilled File
+    if (prefilledFile && !proofFile) {
+      setProofFile(prefilledFile);
+    }
+  }, [prefilledData, prefilledFile]);
 
   const updateField = (field, value) => setForm((p) => ({ ...p, [field]: value }));
 

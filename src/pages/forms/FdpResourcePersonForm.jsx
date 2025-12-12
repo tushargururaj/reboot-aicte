@@ -20,7 +20,7 @@ const Select = ({ name, value, onChange, children }) => (
 );
 
 
-const FdpResourcePersonForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData }) => {
+const FdpResourcePersonForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData, prefilledFile }) => {
   const navigate = useNavigate();
   // FIXED: State declarations moved inside the component
   const [form, setForm] = useState({
@@ -64,7 +64,11 @@ const FdpResourcePersonForm = ({ user, draft, onBack, onLogout, customSubmitHand
         date: prefilledData.date || prev.date
       }));
     }
-  }, [prefilledData]);
+    // Handle Prefilled File
+    if (prefilledFile && !proofFile) {
+      setProofFile(prefilledFile);
+    }
+  }, [prefilledData, prefilledFile]);
 
   const updateField = (field, value) => setForm((p) => ({ ...p, [field]: value }));
 

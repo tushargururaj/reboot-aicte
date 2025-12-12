@@ -17,6 +17,7 @@ const MagicLinkPage = () => {
     // AI Auto-Fill Logic
     const [showAIUpload, setShowAIUpload] = useState(false);
     const [prefilledData, setPrefilledData] = useState(null);
+    const [prefilledFile, setPrefilledFile] = useState(null);
 
     useEffect(() => {
         const verifyToken = async () => {
@@ -112,8 +113,9 @@ const MagicLinkPage = () => {
 
 
 
-    const handleDataExtracted = (data) => {
+    const handleDataExtracted = (data, type, file) => {
         setPrefilledData(data);
+        if (file) setPrefilledFile(file);
         setShowAIUpload(false);
         // Optional: Show a toast or message
     };
@@ -132,7 +134,8 @@ const MagicLinkPage = () => {
             },
             isMagicLink: true,
             lockedName: linkData.facultyName,
-            prefilledData: prefilledData // Pass AI data
+            prefilledData: prefilledData, // Pass AI data
+            prefilledFile: prefilledFile  // Pass AI file
         };
 
         switch (linkData.sectionCode) {
