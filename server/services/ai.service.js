@@ -1,32 +1,33 @@
-// AI Service using Google Vertex AI (uses service account)
+// AI Service using Google Vertex AI
 import { VertexAI } from '@google-cloud/vertexai';
-import path from 'path';
-import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
-// Set the environment variable for Google Cloud authentication
-// This is the most reliable way to ensure the SDK uses the service account key
 
+// Helper to initialize Vertex AI Client
+function getVertexAIClient() {
+  let projectId = 'desmystify'; // Default fallback
+  let authOptions = {};
 
-// Read project ID from credentials
-let projectId = 'desmystify';
-let authOptions = {};
+  try {
+    if (process.env.GOOGLE_CREDENTIALS) {
+      const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+      projectId = credentials.project_id || projectId;
+      authOptions = { credentials };
+      // console.log('Using Vertex AI with project:', projectId);
+    }
+  } catch (error) {
+    console.error('Error reading Vertex AI credentials:', error.message);
+  }
 
-try {
-  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-  projectId = credentials.project_id || 'desmystify';
-  authOptions = { credentials };
-  console.log('Using Vertex AI with project:', projectId);
-} catch (error) {
-  console.error('Error reading credentials:', error.message);
+  return new VertexAI({
+    project: projectId,
+    location: 'us-central1',
+    googleAuthOptions: authOptions
+  });
 }
 
 // Initialize Vertex AI
-const vertex_ai = new VertexAI({
-  project: projectId,
-  location: 'us-central1',
-  googleAuthOptions: authOptions
-});
+const vertex_ai = getVertexAIClient();
 
 /**
  * Certificate type configurations with table mappings
@@ -175,12 +176,6 @@ Return a valid JSON object matching this structure:
 }
 
 /**
- * Parse and process the AI response
- */
-// function processAIResponse removed as it is no longer used
-
-
-/**
  * Helper to wait for a specified time
  */
 function delay(ms) {
@@ -188,25 +183,14 @@ function delay(ms) {
 }
 
 /**
- * Analyze certificate using Vertex AI Gemini
- * Uses service account authentication (no API key needed)
- */
-
-/**
  * Call Vertex AI Model with specific prompt
  */
 async function callVertexAI(prompt) {
-  const models = [
-
-    'gemini-2.5-pro'
-  ];
-
+  const models = ['gemini-2.5-pro']; // Simplified model list
   let lastError = null;
 
   for (const modelName of models) {
     try {
-      // console.log(`Calling Vertex AI (${modelName})...`); 
-
       const generativeModel = vertex_ai.preview.getGenerativeModel({
         model: modelName,
         generationConfig: {
@@ -226,7 +210,6 @@ async function callVertexAI(prompt) {
         await delay(2000);
         continue;
       }
-      // If 404 (model not found), try next model
       continue;
     }
   }
@@ -275,7 +258,6 @@ export async function analyzeCertificateWithAI(ocrText) {
     // PASS 2: Extraction
     const extractPrompt = buildExtractionPrompt(ocrText, detectedType);
     if (!extractPrompt) {
-      // Should not happen if type is valid
       return { success: false, error: 'Invalid config for detected type' };
     }
 
@@ -297,28 +279,21 @@ export async function analyzeCertificateWithAI(ocrText) {
 
     return {
       success: true,
-
-      // Type Info
       detectedType: detectedType,
       typeConfidence: classResult.confidence,
       reason: classResult.reason,
-
-      // Config Info
       tableName: typeConfig.table,
       tableDisplayName: typeConfig.name,
       sectionCode: typeConfig.sectionCode,
       isRecognized: true,
-
-      // Data Info
       extractedFields: finalExtracted,
       fieldConfidence: extractResult.field_confidence || {},
-      overallConfidence: classResult.confidence, // Simplified
+      overallConfidence: classResult.confidence,
       missingRequired: extractResult.missing_required || []
     };
 
   } catch (error) {
     console.error('AI Analysis Error:', error);
-    // Return a graceful failure object so the UI can still show the OCR text
     return {
       success: false,
       error: error.message,

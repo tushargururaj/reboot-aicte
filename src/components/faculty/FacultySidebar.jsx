@@ -1,4 +1,3 @@
-// src/components/FacultySidebar.jsx
 import React from "react";
 
 const SidebarButton = ({ label, onClick, active = false, disabled = false }) => (
@@ -11,8 +10,8 @@ const SidebarButton = ({ label, onClick, active = false, disabled = false }) => 
       (disabled
         ? "text-white/40 cursor-not-allowed"
         : active
-        ? "bg-white/18 font-semibold shadow-sm border border-white/10 text-white"
-        : "text-white/85 hover:bg-white/10 hover:text-white")
+          ? "bg-white/18 font-semibold shadow-sm border border-white/10 text-white"
+          : "text-white/85 hover:bg-white/10 hover:text-white")
     }
   >
     <span className="text-lg font-bold">›</span>
@@ -82,4 +81,3 @@ const FacultySidebar = ({
 };
 
 export default FacultySidebar;
-

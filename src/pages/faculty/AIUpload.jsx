@@ -145,15 +145,47 @@ const AIUploadPage = ({ user, onLogout }) => {
         try {
             setCurrentStep(3); // AI Analysis
 
-            // Upload via server-side multipart form (avoids CORS issues with GCS)
-            setProcessingStep('Uploading file...');
-            const formData = new FormData();
-            formData.append('certificate', file);
+            // ---------------------------------------------------------
+            // STEP 1: Get Signed URL for Direct Upload
+            // ---------------------------------------------------------
+            setProcessingStep('Preparing secure upload...');
+            const uploadUrlResponse = await axios.get('/api/ai-upload/upload-url', {
+                params: {
+                    filename: file.name,
+                    contentType: file.type || 'application/octet-stream'
+                }
+            });
 
-            setProcessingStep('Processing document with AI...');
-            const response = await axios.post('/api/ai-upload/process', formData, {
+            const { uploadUrl, gcsPath } = uploadUrlResponse.data;
+
+            // ---------------------------------------------------------
+            // STEP 2: Upload File Directly to Google Cloud Storage
+            // ---------------------------------------------------------
+            setProcessingStep('Uploading to cloud storage...');
+
+            // Use standard fetch or axios for the PUT request
+            await axios.put(uploadUrl, file, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': file.type || 'application/octet-stream'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    setProcessingStep(`Uploading... ${percentCompleted}%`);
+                }
+            });
+
+            // ---------------------------------------------------------
+            // STEP 3: Process the File (Server reads from GCS)
+            // ---------------------------------------------------------
+            setProcessingStep('Processing document with AI...');
+
+            // Send JSON with gcsPath instead of FormData
+            const response = await axios.post('/api/ai-upload/process', {
+                gcsPath: gcsPath,
+                contentType: file.type // Pass content type for correct handling
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
                 }
             });
 
@@ -178,6 +210,13 @@ const AIUploadPage = ({ user, onLogout }) => {
                     missingRequired: response.data.missingRequired || [],
                     filename: response.data.filename // Capture filename
                 };
+
+                // ENFORCE USER NAME LOCK
+                // Override extracted name with logged-in user's name to prevent discrepancies
+                if (user?.name) {
+                    extractedResult.extracted.participant_name = user.name;
+                    extractedResult.extracted.faculty_name = user.name; // Just in case
+                }
 
                 // CLIENT-SIDE VALIDATION ENFORCEMENT
                 // Check if any required fields are actually null/missing in extracted data
@@ -330,11 +369,18 @@ const AIUploadPage = ({ user, onLogout }) => {
         setIsTyping(true);
         addMessage("💾 Saving to database...", false);
 
+        // Enforce user name in payload
+        const payload = {
+            ...extractedData.extracted,
+            participant_name: user?.name || extractedData.extracted.participant_name,
+            faculty_name: user?.name || extractedData.extracted.faculty_name
+        };
+
         try {
             const response = await axios.post('/api/ai-upload/confirm', {
                 userId: user?.id || 1, // Use actual user ID
                 sectionCode: extractedData.sectionCode,
-                data: extractedData.extracted,
+                data: payload,
                 filePath: extractedData.filePath,
                 originalFilename: extractedData.filename // Send original filename
             });

@@ -283,9 +283,12 @@ router.post('/confirm', async (req, res) => {
         console.log('User ID:', userId);
 
         let result;
-        const fileStoredName = filePath ? path.basename(filePath) : null;
-        // Use provided original filename or fall back to basename
-        const fileOriginalName = originalFilename || fileStoredName;
+        // Store the FULL GCS path (e.g., uploads/certificates/file.pdf)
+        // Do NOT use path.basename() as that strips the directory
+        const fileStoredName = filePath || null;
+
+        // Use provided original filename or fall back to basename of path
+        const fileOriginalName = originalFilename || (filePath ? path.basename(filePath) : null);
 
         // Insert based on section code (matching submissionRoutes.js logic)
         if (sectionCode === '6.1.1.1') {

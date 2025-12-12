@@ -9,9 +9,9 @@ import { getAcademicYearOptions, calculateDurationDays } from "../../utils/dateU
 
 
 const Label = ({ children }) => <label className="text-xs uppercase tracking-wide text-gray-600 font-medium block mb-1">{children}</label>;
-const Input = ({ name, value, onChange, placeholder, type = "text", min = null }) => (
-  <input type={type} name={name} value={value} min={min} onChange={onChange} placeholder={placeholder}
-    className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2.5 text-base text-gray-800 focus:ring-2 focus:ring-indigo-500/70 focus:outline-none placeholder-gray-400 transition-colors" />
+const Input = ({ name, value, onChange, placeholder, type = "text", min = null, ...props }) => (
+  <input type={type} name={name} value={value} min={min} onChange={onChange} placeholder={placeholder} {...props}
+    className={`w-full rounded-lg border px-4 py-2.5 text-base focus:outline-none transition-colors ${props.disabled ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed" : "bg-white border-gray-300 text-gray-800 focus:ring-2 focus:ring-indigo-500/70"} ${props.className || ""}`} />
 );
 const Select = ({ name, value, onChange, children }) => (
   <select name={name} value={value} onChange={onChange} className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2.5 text-base text-gray-800 focus:ring-2 focus:ring-indigo-500/70 focus:outline-none transition-colors">
@@ -20,11 +20,11 @@ const Select = ({ name, value, onChange, children }) => (
 );
 
 
-const FdpResourcePersonForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink }) => {
+const FdpResourcePersonForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName }) => {
   const navigate = useNavigate();
   // FIXED: State declarations moved inside the component
   const [form, setForm] = useState({
-    facultyName: user?.name || "",
+    facultyName: lockedName || user?.name || "",
     academicYear: "",
     programTitle: "",
     organizer: "",
@@ -143,7 +143,19 @@ const FdpResourcePersonForm = ({ user, draft, onBack, onLogout, customSubmitHand
 
       <form onSubmit={handleSubmit} className={isMagicLink ? "space-y-8" : "rounded-xl bg-gray-50 px-8 py-8 space-y-8 shadow-inner border border-gray-200"}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div><Label>Faculty Name</Label><Input name="facultyName" value={form.facultyName} onChange={(e) => updateField("facultyName", e.target.value)} /></div>
+          <div>
+            <Label>Faculty Name</Label>
+            <Input
+              name="facultyName"
+              value={form.facultyName}
+              onChange={(e) => updateField("facultyName", e.target.value)}
+              disabled={!!(user?.name || isMagicLink)}
+              className={`w-full rounded-lg border px-4 py-2.5 text-base focus:outline-none transition-colors ${(user?.name || isMagicLink)
+                ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed"
+                : "bg-white border-gray-300 text-gray-800 focus:ring-2 focus:ring-indigo-500/70"
+                }`}
+            />
+          </div>
           <div>
             <Label>Academic Year</Label>
             <Select name="academicYear" value={form.academicYear} onChange={(e) => updateField("academicYear", e.target.value)}>

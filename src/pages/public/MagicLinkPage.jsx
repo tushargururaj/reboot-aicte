@@ -116,7 +116,8 @@ const MagicLinkPage = () => {
                 }
                 return handleCustomSubmit(formData);
             },
-            isMagicLink: true
+            isMagicLink: true,
+            lockedName: linkData.facultyName
         };
 
         switch (linkData.sectionCode) {
