@@ -32,7 +32,7 @@ const TextArea = ({ name, value, onChange, placeholder, rows = 3 }) => (
 );
 
 
-const FdpParticipationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData }) => {
+const FdpParticipationForm = ({ user, draft, onBack, onLogout, customSubmitHandler, isMagicLink, lockedName, prefilledData, prefilledFile }) => {
   const navigate = useNavigate();
   // Form field state (initializing with defaults; facultyName pulled from logged-in user)
   const [form, setForm] = useState({
@@ -84,7 +84,11 @@ const FdpParticipationForm = ({ user, draft, onBack, onLogout, customSubmitHandl
         date: prefilledData.date || prev.date
       }));
     }
-  }, [prefilledData]);
+    // Handle Prefilled File
+    if (prefilledFile && !proofFile) {
+      setProofFile(prefilledFile);
+    }
+  }, [prefilledData, prefilledFile]);
 
   // Simple helper to mutate a single field
   const updateField = (field, value) => setForm((p) => ({ ...p, [field]: value }));
