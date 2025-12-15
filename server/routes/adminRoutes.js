@@ -39,18 +39,25 @@ import { bucket } from "../config/gcs.js";
 
 router.get("/download", async (req, res) => {
   try {
-    const fileName = req.query.p;      // stored DB filename ONLY
-    const displayName = req.query.name || fileName;
+    const fileName = req.query.p;      // stored DB filename (GCS path)
+    let displayName = req.query.name || "document";
 
     if (!fileName) return res.status(400).send("Missing filename");
 
-    console.log("Generating signed URL for:", fileName);
+    // Ensure displayName has correct extension from stored file
+    const ext = fileName.split('.').pop();
+    if (ext && !displayName.toLowerCase().endsWith(`.${ext.toLowerCase()}`)) {
+      displayName = `${displayName}.${ext}`;
+    }
+
+    console.log("Generating signed URL for:", fileName, "with display name:", displayName);
 
     const options = {
       version: 'v4',
       action: 'read',
       expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-      promptSaveAs: displayName // Optional: hints the browser to save as this name
+      // This sets Content-Disposition header to force download with specific filename
+      responseDisposition: `attachment; filename="${displayName}"`
     };
 
     const [url] = await bucket.file(fileName).getSignedUrl(options);

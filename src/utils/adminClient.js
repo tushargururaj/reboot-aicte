@@ -11,6 +11,24 @@ const fetchJson = async (url) => {
     return await res.json();
 };
 
+// Helper to construct download URL with correct extension
+const getDownloadUrl = (file, fileName) => {
+    if (!file) return "#";
+
+    // Get extension from the stored file path (which always has one from upload logic)
+    const ext = file.split('.').pop();
+
+    // Determine display name
+    let name = fileName || "document";
+
+    // If name doesn't already have the extension, append it
+    if (!name.toLowerCase().endsWith(`.${ext.toLowerCase()}`)) {
+        name = `${name}.${ext}`;
+    }
+
+    return `${API_BASE}/download?p=${encodeURIComponent(file)}&name=${encodeURIComponent(name)}`;
+};
+
 // Get all faculty
 export const getFacultyList = async () => {
     const data = await fetchJson(`${API_BASE}/all-faculty`);
@@ -46,9 +64,7 @@ export const getFacultySubmissions = async (facultyId) => {
             category: sub.code, // Use code as category
             date: sub.date,
             academic_year: sub.academic_year, // Include academic year
-            docUrl: sub.file
-                ? `${API_BASE}/download?p=${sub.file}&name=${encodeURIComponent(sub.file_name || "document")}`
-                : "#",
+            docUrl: getDownloadUrl(sub.file, sub.file_name),
             file: sub.file,
             fileName: sub.file_name,
         }));
@@ -94,9 +110,7 @@ export const getCategoryReport = async (sectionCode) => {
             category: sectionCode,
             cayGroup: row.cayGroup, // Preserve CAY group
             marks: row.marks,       // Preserve marks
-            docUrl: row.file
-                ? `${API_BASE}/download?p=${row.file}&name=${encodeURIComponent(row.file_name || "document")}`
-                : "#",
+            docUrl: getDownloadUrl(row.file, row.file_name),
             file: row.file,
             fileName: row.file_name,
             // Additional fields
@@ -128,9 +142,7 @@ export const getAllSubmissions = async () => {
             code: sub.code,
             date: sub.date === 'N/A' && sub.academic_year ? `AY ${sub.academic_year}` : sub.date,
             status: sub.status,
-            docUrl: sub.proof_document
-                ? `${API_BASE}/download?p=${sub.proof_document}&name=${encodeURIComponent(sub.proof_filename || "document")}`
-                : "#"
+            docUrl: getDownloadUrl(sub.proof_document, sub.proof_filename)
         }));
     } catch (err) {
         console.error("Error fetching all submissions:", err);

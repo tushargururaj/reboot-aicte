@@ -1,53 +1,105 @@
-import React from 'react';
-import { CheckCircle, AlertCircle, Edit2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { CheckCircle, AlertCircle, Edit2, AlertTriangle, Save, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const ExtractedDataCard = ({ field, value, confidence, label, onEdit }) => {
-    const getConfidenceColor = (conf) => {
-        if (conf >= 0.8) return 'from-green-500 to-emerald-600';
-        if (conf >= 0.5) return 'from-yellow-500 to-orange-500';
+// Single Field Component
+const FieldItem = ({ field, value, confidence, isMissing, onUpdate }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(value || '');
+
+    const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    // Confidence handling
+    const confScore = confidence ? Math.round(confidence * 100) : 0;
+
+    const getStatusColor = () => {
+        if (isMissing) return 'from-red-500 to-red-600';
+        if (confScore >= 80) return 'from-green-500 to-emerald-600';
+        if (confScore >= 50) return 'from-yellow-500 to-orange-500';
         return 'from-red-500 to-pink-600';
     };
 
-    const getConfidenceIcon = (conf) => {
-        if (conf >= 0.8) return <CheckCircle className="w-5 h-5" />;
-        return <AlertCircle className="w-5 h-5" />;
+    const getBgColor = () => {
+        if (isMissing) return 'bg-red-50 border-red-200';
+        if (confScore >= 80) return 'bg-green-50 border-green-200';
+        if (confScore >= 50) return 'bg-yellow-50 border-yellow-200';
+        return 'bg-red-50 border-red-200';
     };
 
-    const getConfidenceBg = (conf) => {
-        if (conf >= 0.8) return 'bg-green-50 border-green-200';
-        if (conf >= 0.5) return 'bg-yellow-50 border-yellow-200';
-        return 'bg-red-50 border-red-200';
+    const handleSave = () => {
+        onUpdate(field, editValue);
+        setIsEditing(false);
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`p-4 rounded-xl border-2 ${getConfidenceBg(confidence)} transition-all hover:shadow-md`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`p-4 rounded-xl border-2 ${getBgColor()} transition-all hover:shadow-md relative group`}
         >
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-bold text-gray-600 uppercase tracking-wide">{label}</span>
-                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full bg-gradient-to-r ${getConfidenceColor(confidence)} text-white text-xs font-bold`}>
-                            {getConfidenceIcon(confidence)}
-                            <span>{Math.round(confidence * 100)}%</span>
+            <div className="space-y-2">
+                <div className="flex justify-between items-start">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</span>
+                    {!isMissing && (
+                        <div className={`flex items-center space-x-1 px-2 py-0.5 rounded-full bg-gradient-to-r ${getStatusColor()} text-white text-[10px] font-bold`}>
+                            {confScore >= 80 ? <CheckCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            <span>{confScore}%</span>
                         </div>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900">{value || 'N/A'}</p>
+                    )}
+                    {isMissing && (
+                        <div className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold border border-red-200">
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>MISSING</span>
+                        </div>
+                    )}
                 </div>
-                {onEdit && (
-                    <button
-                        onClick={() => onEdit(field)}
-                        className="ml-3 p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                    >
-                        <Edit2 className="w-5 h-5" />
-                    </button>
+
+                {isEditing ? (
+                    <div className="flex items-center space-x-2 mt-1">
+                        <input
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="flex-1 text-sm border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 p-1"
+                        />
+                        <button onClick={handleSave} className="text-green-600 hover:bg-green-100 p-1 rounded"><Save className="w-4 h-4" /></button>
+                        <button onClick={() => setIsEditing(false)} className="text-red-500 hover:bg-red-100 p-1 rounded"><X className="w-4 h-4" /></button>
+                    </div>
+                ) : (
+                    <div className="flex justify-between items-end group">
+                        <p className={`text-base font-semibold ${!value ? 'text-gray-400 italic' : 'text-gray-800'} break-words`}>
+                            {value || 'Not detected'}
+                        </p>
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-purple-600 transition-opacity p-1"
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                    </div>
                 )}
             </div>
         </motion.div>
+    );
+};
+
+// Main Grid Component
+const ExtractedDataCard = ({ data, confidence, missingFields, onUpdate }) => {
+    if (!data) return null;
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(data).map(([key, value]) => (
+                <FieldItem
+                    key={key}
+                    field={key}
+                    value={value}
+                    confidence={confidence ? confidence[key] : 0}
+                    isMissing={missingFields ? missingFields.includes(key) : false}
+                    onUpdate={onUpdate}
+                />
+            ))}
+        </div>
     );
 };
 

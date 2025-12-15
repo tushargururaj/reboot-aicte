@@ -20,7 +20,7 @@ async function createClient() {
     host: "localhost",
     user: "postgres",
     password: process.env.LOCAL_DB_PASSWORD || "",
-    database: "secret-1",
+    database: "secret-2",
     port: process.env.DB_PORT_LOCAL || 5433,
   };
 
